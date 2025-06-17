@@ -30,18 +30,6 @@ export async function fetchPopularMovies(language = "en-US") {
   }
 }
 
-// 3. 10 שחקנים פופולריים
-export async function fetchPopularPeople(language = "en-US") {
-  try {
-    const res = await axiosInstance.get(`/person/popular?language=${language}`);
-    return res.data.results.slice(0, 10);
-  } catch (error) {
-    console.error("Failed to fetch popular people:", error);
-    return [];
-  }
-}
-
-// 4. רשימת ז'נרים
 
 export async function fetchTopGenres(language = "en-US") {
   const res = await axiosInstance.get(`/genre/movie/list?language=${language}`);
@@ -62,45 +50,7 @@ export async function fetchTopGenres(language = "en-US") {
 
   return genres.sort((a, b) => b.count - a.count).slice(0, 10);
 }
-// 5. טריילרים לסרטים פופולריים
-export async function fetchPopularMovieTrailers(language = "en-US") {
-  const res = await axiosInstance.get(`/movie/popular?language=${language}`);
-  const movies = res.data.results.slice(0, 10);
 
-  const trailers = await Promise.all(
-    movies.map(async (movie: any) => {
-      const videoRes = await axiosInstance.get(
-        `/movie/${movie.id}/videos?language=${language}`
-      );
-      const trailer = videoRes.data.results.find(
-        (v: any) => v.type === "Trailer" && v.site === "YouTube"
-      );
-      return { ...movie, trailerKey: trailer ? trailer.key : null };
-    })
-  );
-
-  return trailers;
-}
-// 6. טריילרים לסדרות פופולריות
-export async function fetchPopularTVTrailers(language = "en-US") {
-  const res = await axiosInstance.get(`/tv/popular?language=${language}`);
-  const shows = res.data.results.slice(0, 10);
-
-  const trailers = await Promise.all(
-    shows.map(async (show: any) => {
-      const videoRes = await axiosInstance.get(
-        `/tv/${show.id}/videos?language=${language}`
-      );
-      const trailer = videoRes.data.results.find(
-        (v: any) => v.type === "Trailer" && v.site === "YouTube"
-      );
-      return { ...show, trailerKey: trailer ? trailer.key : null };
-    })
-  );
-
-  return trailers;
-}
-// 7. פרטי סרט כולל קאסט
 export async function fetchMovieDetails(id: number, language = "en-US", castLimit = 20) {
   const [movieRes, creditsRes, videosRes] = await Promise.all([
     axiosInstance.get(`/movie/${id}?language=${language}`),
@@ -247,31 +197,3 @@ export async function fetchPersonCredits(id: number, language = "en-US") {
     return [];
   }
 }
-
-// פונקציה גנרית לטריילרים
-export async function fetchPopularTrailers(type: "movie" | "tv", language = "en-US") {
-  const res = await axiosInstance.get(`/${type}/popular?language=${language}`);
-  const items = res.data.results.slice(0, 10);
-
-  const trailers = await Promise.all(
-    items.map(async (item: any) => {
-      const videoRes = await axiosInstance.get(
-        `/${type}/${item.id}/videos?language=${language}`
-      );
-      const trailer = videoRes.data.results.find(
-        (v: any) => v.type === "Trailer" && v.site === "YouTube"
-      );
-      return { ...item, trailerKey: trailer ? trailer.key : null };
-    })
-  );
-
-  return trailers;
-}
-
-// שמירה לאחור: פונקציות ישנות (אפשר למחוק בהמשך)
-// export async function fetchPopularMovieTrailers(language = "en-US") {
-//   return fetchPopularTrailers("movie", language);
-// }
-// export async function fetchPopularTVTrailers(language = "en-US") {
-//   return fetchPopularTrailers("tv", language);
-// }

@@ -1,46 +1,80 @@
-# Getting Started with Create React App
+# MovieHub
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+MovieHub is a modern web application for discovering movies, TV shows, and people in the entertainment industry. The app provides a clean, user-friendly interface for searching, filtering, and exploring media content from around the world.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Search**: Find movies, TV shows, and people by name with instant suggestions.
+- **Categorized Results**: Search results are grouped by Movies, TV Shows, and People for easy navigation.
+- **Media Details**: View detailed information about each movie, TV show, or person, including genres, cast, and more.
+- **Filtering**: Filter content by genre, language, and region.
+- **Responsive Design**: Fully responsive and optimized for desktop and mobile devices.
+- **Modern UI**: Clean, modern interface built with React and Tailwind CSS.
 
-### `npm start`
+## Technologies Used
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **React** (TypeScript)
+- **React Router**
+- **Tailwind CSS**
+- **Axios** (for API requests)
+- **TMDB API** (The Movie Database)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+### Prerequisites
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Node.js (v16 or higher recommended)
+- npm or yarn
 
-### `npm run build`
+### Installation
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. Clone the repository:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+   ```sh
+   git clone https://github.com/your-username/movie-app.git
+   cd movie-app
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Install dependencies:
 
-### `npm run eject`
+   ```sh
+   npm install
+   # or
+   yarn install
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+3. Create a `.env` file in the root directory and add your TMDB API key:
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   ```
+   REACT_APP_TMDB_API_KEY=your_tmdb_api_key
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+4. Start the development server:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+   ```sh
+   npm start
+   # or
+   yarn start
+   ```
 
-## Learn More
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Project Structure
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- `src/` - Main source code
+  - `api/` - API utilities and TMDB integration
+  - `components/` - Reusable UI components
+  - `pages/` - Main pages (Home, Search Results, Details, etc.)
+  - `context/` - React context providers (Language, Country, Genres)
+  - `config/` - App configuration
+  - `types/` - TypeScript types
+  - `utils/` - Utility functions
+
+## Customization
+
+- Update the app name and branding in `src/config/siteConfig.ts`.
+- Modify styles using Tailwind CSS classes in the components.
+
+## License
+
+This project is licensed under the MIT License.
