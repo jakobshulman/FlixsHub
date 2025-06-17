@@ -12,5 +12,8 @@
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
+  color: #23272f;
 }
+
+/* כל הטקסטים יהיו אפור עמוק, חוץ מ-Layout.jsx שמגדיר text-white */

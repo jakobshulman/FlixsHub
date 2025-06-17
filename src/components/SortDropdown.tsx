@@ -1,4 +1,5 @@
 import React from "react";
+import { siteConfig } from "../config/siteConfig";
 
 interface SortDropdownProps {
   value: string;
@@ -17,7 +18,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
   return (
     <div className="relative inline-block text-right">
       <button
-        className="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-gray-900 rounded-full shadow transition"
+        className={`px-4 py-2 ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryHover} ${siteConfig.buttonColors.primaryText} rounded-full shadow transition`}
         onClick={() => setOpen(o => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -29,7 +30,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
           {options.map(opt => (
             <li
               key={opt.value}
-              className={`px-4 py-2 cursor-pointer hover:bg-yellow-100 ${value === opt.value ? "font-bold bg-yellow-300 text-gray-900" : ""}`}
+              className={`px-4 py-2 cursor-pointer hover:bg-yellow-100 ${value === opt.value ? `font-bold ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryText}` : ""}`}
               onClick={() => { onChange(opt.value); setOpen(false); }}
               role="option"
               aria-selected={value === opt.value}

@@ -75,7 +75,7 @@ export default function Layout() {
 
 
   return (
-    <div className="font-sans">
+    <div className="font-sans min-h-screen">
       {showLangModal && (
         <LanguageDetectedModal
           language={language}
@@ -84,10 +84,10 @@ export default function Layout() {
           onClose={() => setShowLangModal(false)}
         />
       )}
-      <header className="sticky top-0 z-40 bg-white shadow flex items-center justify-between px-4 py-2">
-        <Link to="/" className="text-xl font-bold tracking-tight">MovieApp</Link>
+      <header className="sticky top-0 z-40 bg-black shadow flex items-center justify-between px-4 py-2">
+        <Link to="/" className="text-2xl md:text-4xl font-extrabold tracking-tight text-white">{siteConfig.Appname}</Link>
         {(brand || routeTitle) && (
-          <div className="absolute left-1/2 transform -translate-x-1/2 text-lg font-semibold">
+          <div className="absolute left-1/2 transform -translate-x-1/2 text-lg font-semibold text-white">
             {routeTitle || brand}
           </div>
         )}
@@ -103,13 +103,13 @@ export default function Layout() {
               onChange={handleSearchChange}
             />
             {suggestions.length > 0 && (
-              <ul className="absolute left-0 right-0 bg-white border rounded shadow z-50 mt-1 text-black max-h-60 overflow-y-auto">
+              <ul className="absolute left-0 right-0 bg-black border border-gray-700 rounded shadow z-50 mt-1 text-white max-h-60 overflow-y-auto">
                 {suggestions.map((item) => (
                   <li key={item.id + '-' + (item.media_type || '')}>
                     {item.media_type === "person" ? (
                       <a
                         href={`/person/${item.id}`}
-                        className="block px-3 py-2 hover:bg-gray-100 truncate flex items-center"
+                        className="block px-3 py-2 hover:bg-gray-800 truncate flex items-center text-white"
                         onClick={() => setSuggestions([])}
                       >
                         {item.profile_path && (
@@ -120,7 +120,7 @@ export default function Layout() {
                     ) : (
                       <a
                         href={`/${item.media_type === "tv" ? "tv" : "movie"}/${item.id}`}
-                        className="block px-3 py-2 hover:bg-gray-100 truncate flex items-center"
+                        className="block px-3 py-2 hover:bg-gray-800 truncate flex items-center text-white"
                         onClick={() => setSuggestions([])}
                       >
                         {item.poster_path && (
@@ -135,14 +135,15 @@ export default function Layout() {
             )}
           </form>
           <nav className="space-x-4">
-            <Link to="/movies" className="hover:underline">Movies</Link>
-            <Link to="/tvs" className="hover:underline">TV Shows</Link>
+            <Link to="/movies" className="hover:underline text-white">Movies</Link>
+            <Link to="/tvs" className="hover:underline text-white">TV Shows</Link>
           </nav>
           {isLanguagesLoaded && (
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="text-black p-1 rounded"
+              className="text-black p-0.5 rounded text-xs w-auto min-w-0"
+              style={{ minWidth: 0, width: 'auto', maxWidth: 80 }}
             >
               {languages.map(lang => (
                 <option key={lang.iso_639_1} value={lang.iso_639_1}>
@@ -153,7 +154,8 @@ export default function Layout() {
           )}
         </div>
       </header>
-      <main className="max-w-6xl mx-auto">
+      <main className="w-full px-4 md:px-10">
+      {/* <main className="max-w-6xl mx-auto"> */}
         <Outlet />
       </main>
     </div>

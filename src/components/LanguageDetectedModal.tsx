@@ -1,4 +1,5 @@
 import React from "react";
+import { siteConfig } from "../config/siteConfig";
 
 interface LanguageDetectedModalProps {
   language: string;
@@ -11,7 +12,7 @@ export default function LanguageDetectedModal({ language, languages, onChange, o
   const current = languages.find(l => l.iso_639_1 === language);
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 animate-fadein">
-      <div className="flex items-center gap-4 bg-yellow-300 shadow-lg px-6 py-3 w-full">
+      <div className={`flex items-center gap-4 ${siteConfig.buttonColors.primaryBg} shadow-lg px-6 py-3 w-full`}>
         <span className="text-gray-900 font-semibold text-base">
           השפה שנבחרה עבורך היא:
           <span className="ml-1 font-bold">{current ? current.english_name : language}</span>

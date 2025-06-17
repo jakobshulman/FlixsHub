@@ -104,11 +104,11 @@ export default function HorizontalScroller({ title, fetchItems, type, onTitleCli
         >
           {items.length === 0
             ? Array.from({ length: 10 }).map((_, idx) => (
-                <div className="flex-shrink-0 opacity-30" key={"placeholder-" + idx}>
+                <div className="flex-shrink-0 opacity-30 w-[180px] aspect-[2/3]" key={"placeholder-" + idx}>
                   {type === "genre" ? (
                     <div className="w-32 h-16 bg-gray-200 rounded animate-pulse" />
                   ) : (
-                    <div className="w-32 h-48 bg-gray-200 rounded animate-pulse" />
+                    <div className="w-full h-full bg-gray-200 rounded animate-pulse" />
                   )}
                 </div>
               ))
@@ -118,13 +118,16 @@ export default function HorizontalScroller({ title, fetchItems, type, onTitleCli
                     <GenreCard id={item.id} name={item.name} />
                   </div>
                 ) : (
-                  <MediaCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title || item.name}
-                    poster={item.poster_path || null}
-                    type={type === "mixed" ? (item.media_type === "tv" ? "tv" : "movie") : type}
-                  />
+                  <div className="flex-shrink-0 w-[180px] aspect-[2/3]" key={item.id}>
+                    <MediaCard
+                      id={item.id}
+                      title={item.title || item.name}
+                      poster={item.poster_path || null}
+                      type={type === "mixed" ? (item.media_type === "tv" ? "tv" : "movie") : type}
+                      genre_ids={item.genre_ids}
+                      vote_average={item.vote_average}
+                    />
+                  </div>
                 )
               ))}
         </div>

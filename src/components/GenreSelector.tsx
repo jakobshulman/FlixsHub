@@ -1,4 +1,5 @@
 import React from "react";
+import { siteConfig } from "../config/siteConfig";
 
 interface GenreSelectorProps {
   genres: { id: number; name: string }[];
@@ -8,7 +9,7 @@ interface GenreSelectorProps {
 }
 
 const colorMap: Record<string, string> = {
-  yellow: "focus:ring-yellow-400 bg-yellow-300 text-gray-900 border-yellow-400",
+  yellow: `focus:ring-yellow-400 ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryText} ${siteConfig.buttonColors.primaryBorder}`,
   blue: "focus:ring-blue-400 bg-blue-300 text-gray-900 border-blue-400",
   // ניתן להוסיף צבעים נוספים
 };

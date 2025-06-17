@@ -158,7 +158,7 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
               onClick={() => setSortBy(value)}
               className={`px-4 py-1 rounded-full border-2 transition text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                 sortBy === value
-                  ? "bg-blue-600 text-white border-blue-600 shadow"
+                  ? "bg-blue-600 border-blue-600 shadow"
                   : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-50"
               }`}
               tabIndex={0}
@@ -169,7 +169,7 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
           ))}
         </div>
         <button
-          className="block mx-auto mt-4 px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition"
+          className="block mx-auto mt-4 px-6 py-2 bg-blue-600 rounded-full font-bold hover:bg-blue-700 transition"
           onClick={handleApply}
         >
           אישור

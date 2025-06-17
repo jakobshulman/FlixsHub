@@ -1,4 +1,3 @@
-import FeaturedTrailer from "../components/FeaturedTrailer";
 import { fetchPopularMovies, fetchPopularMoviesByUserCountry, fetchPopularTVShows, fetchPopularTVShowsByUserCountry, fetchTopGenres } from "../api/tmdbApi";
 import HorizontalScroller from "../components/HorizontalScroller";
 import { useLanguage } from "../context/LanguageContext";
@@ -12,7 +11,8 @@ export default function Home() {
 
   return (
     <div className="font-sans">
-      <FeaturedTrailer type="movie" />
+      {/* ניתן להוריד את FeaturedTrailer או להעביר לו פרופס מתאימים */}
+      {/* <FeaturedTrailer type="movie" /> */}
       <HorizontalScroller
         title="Popular Movies"
         fetchItems={() => fetchPopularMovies(language)}

@@ -20,7 +20,7 @@ function getRandomGradient(id: number) {
 export default function GenreCard({ id, name }: { id: number; name: string }) {
   return (
     <div
-      className="w-[180px] aspect-[2/3] flex items-center justify-center rounded shadow text-xl font-bold text-white bg-cover bg-center"
+      className="w-[180px] aspect-[2/3] flex items-center justify-center rounded shadow text-xl font-bold bg-cover bg-center"
       style={{ background: getRandomGradient(id) }}
     >
       <span className="text-center w-full h-[2.5rem] flex items-center justify-center leading-tight break-words text-ellipsis overflow-hidden whitespace-normal drop-shadow-md">

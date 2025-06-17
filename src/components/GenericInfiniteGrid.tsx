@@ -4,6 +4,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { useCountry } from "../context/CountryContext";
 import { fetchMediaList } from "../api/fetchMediaList";
 import FilterBar, { FilterValues } from "./FilterBar";
+import { siteConfig } from "../config/siteConfig";
 
 interface GenericInfiniteGridProps {
   title: string;
@@ -41,7 +42,6 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
   };
 
   useEffect(() => {
-    // אין לעדכן את שפת האפליקציה לפי הפילטר
     resetState();
   }, [sort, filter, genres, language, byRegion, type, countryCode]);
 
@@ -108,16 +108,27 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
             title={getTitle ? getTitle(item) : item.title || item.name}
             poster={item.poster_path}
             type={type}
+            genre_ids={item.genre_ids}
+            vote_average={item.vote_average}
           />
         ))}
       </div>
+
+      {/* קו דק בין תיאור לקאסט */}
+      <div className="border-b border-gray-200 my-8" />
+
+      {/* קאסט */}
+      {/* כאן תוכל להוסיף קומפוננטה של קאסט אם יש צורך */}
+
+      {/* קו דק מתחת לטופ קאסט */}
+      <div className="border-b border-gray-200 my-8" />
 
       {/* הודעה על חוסר תוצאות */}
       {items.length === 0 && !hasMore && (
         <div className="text-center text-gray-500 mt-6 flex flex-col items-center gap-3">
           <p>לא נמצאו תוצאות תואמות.</p>
           <button
-            className="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-gray-900 rounded-full transition"
+            className={`px-4 py-2 ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryHover} ${siteConfig.buttonColors.primaryText} rounded-full transition`}
             onClick={() => { setFilter({}); setGenres([]); }}
           >
             אפס סינון

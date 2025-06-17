@@ -18,7 +18,7 @@ const HorizontalCastScroller: React.FC<HorizontalCastScrollerProps> = ({ cast, o
     ))}
     <div className="flex flex-col items-center justify-center min-w-[120px]">
       <button
-        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center mb-1"
+        className="bg-blue-500 hover:bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center mb-1"
         onClick={onShowAll}
         aria-label="Show all cast"
       >

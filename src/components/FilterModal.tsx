@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FilterValues } from "./FilterBar";
 import { useLanguage } from "../context/LanguageContext";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { siteConfig } from "../config/siteConfig";
 
 interface FilterModalProps {
   initial: FilterValues;
@@ -37,9 +38,17 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
     });
   };
 
+  // מניעת גלילה של הדף כשהמודל פתוח
+  useEffect(() => {
+    document.body.classList.add("overflow-hidden");
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative" onClick={e => e.stopPropagation()}>
+    <div className="fixed left-0 right-0 bottom-0 top-[72px] bg-black/40 z-50 flex items-start justify-center" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative max-h-[calc(100vh-72px)] overflow-y-auto mt-4" onClick={e => e.stopPropagation()}>
         <button className="absolute top-2 left-2 text-gray-400 hover:text-gray-700 text-2xl" onClick={onClose} aria-label="סגור">×</button>
         <h3 className="text-xl font-bold mb-4 text-center">פילטרים</h3>
         <div className="mb-6">
@@ -66,7 +75,7 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
           </div>
           <div className="text-center text-xs mt-1">{yearRange[0]} - {yearRange[1]}</div>
         </div>
-        <div className="border-t-2 border-gray-300 my-4" />
+        <div className={`${siteConfig.divider.thickness} ${siteConfig.divider.border} my-4`} />
         <div className="mb-6">
           <label className="block text-sm mb-2 font-semibold">טווח דירוג:</label>
           <div className="flex items-center gap-4">
@@ -91,7 +100,7 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
             <span className="text-xs text-gray-500 w-10 text-center">{ratingRange[1]}</span>
           </div>
         </div>
-        <div className="border-t-2 border-gray-300 my-4" />
+        <div className={`${siteConfig.divider.thickness} ${siteConfig.divider.border} my-4`} />
         <div className="mb-3">
           <label className="block text-sm mb-1 font-semibold">שפת הסרט:</label>
           <select
@@ -108,7 +117,7 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
             ))}
           </select>
         </div>
-        <button className="mt-4 w-full bg-yellow-300 hover:bg-yellow-400 text-gray-900 py-2 rounded transition" onClick={handleApply}>החל סינון</button>
+        <button className={`mt-4 w-full ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryHover} ${siteConfig.buttonColors.primaryText} py-2 rounded transition`} onClick={handleApply}>החל סינון</button>
       </div>
     </div>
   );
