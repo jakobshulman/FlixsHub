@@ -1,16 +1,15 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Outlet, Link, useSearchParams, useLocation } from "react-router-dom";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { Outlet, Link, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import { useLanguage } from "./context/LanguageContext";
 import { siteConfig } from "./config/siteConfig";
-import { getUserCountryName } from "./utils/locationUtils";
 import axiosInstance from "./api/axiosInstance";
-import UserMenu from "./components/UserMenu";
+import LanguageDetectedModal from "./components/LanguageDetectedModal";
 
 export default function Layout() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, languages, isLanguageInitialized, wasLanguageAutoDetected } = useLanguage();
   const [searchParams] = useSearchParams();
   const location = useLocation();
-  const [countryName, setCountryName] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -21,11 +20,17 @@ export default function Layout() {
   const path = location.pathname as keyof typeof routeTitles;
   const baseTitle = routeTitles[path];
 
-  useEffect(() => {
-    getUserCountryName().then(setCountryName);
-  }, []);
+  // ודא שהשפה מוצגת רק כאשר רשימת השפות נטענה
+  const isLanguagesLoaded = languages.length > 0;
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    // אם השפה שבלוקל סטורג' לא קיימת ברשימת השפות, נבחר את הראשונה ברשימה
+    if (isLanguagesLoaded && isLanguageInitialized && language && !languages.find(l => l.iso_639_1 === language)) {
+      setLanguage(languages[0].iso_639_1);
+    }
+  }, [isLanguagesLoaded, languages, language, setLanguage, isLanguageInitialized]);
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchValue(value);
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -41,27 +46,44 @@ export default function Layout() {
         setSuggestions([]);
       }
     }, 300);
-  };
+  }, [language]);
 
-  const routeTitle = (baseTitle?.includes("{country}") && countryName)
-    ? baseTitle.replace("{country}", countryName)
-    : baseTitle;
+  const [showLangModal, setShowLangModal] = useState(false);
+  const [langModalWasShown, setLangModalWasShown] = useState(false);
 
-  // סימולציה של משתמש רשום בלוקלהוסט בלבד
-  const [user, setUser] = useState<{ name: string } | null>(() => {
-    if (window.location.hostname === "localhost") {
-      const saved = localStorage.getItem("user");
-      return saved ? JSON.parse(saved) : null;
+  useEffect(() => {
+    // הצג מודאל רק אם השפה זוהתה אוטומטית (לא מה-localStorage) ובכניסה ראשונה בלבד
+    if (
+      isLanguageInitialized &&
+      languages.length > 0 &&
+      !langModalWasShown &&
+      wasLanguageAutoDetected
+    ) {
+      setShowLangModal(true);
+      setLangModalWasShown(true);
     }
-    return null;
-  });
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-  };
+    // איפוס הדגל בטעינה מחדש
+    if (!wasLanguageAutoDetected && langModalWasShown) {
+      setLangModalWasShown(false);
+    }
+  }, [isLanguageInitialized, languages, langModalWasShown, wasLanguageAutoDetected]);
+
+  // אם יש צורך בשם המדינה, יש להוסיף מימוש מתאים בהמשך.
+  const routeTitle = baseTitle;
+
+
+
 
   return (
     <div className="font-sans">
+      {showLangModal && (
+        <LanguageDetectedModal
+          language={language}
+          languages={languages}
+          onChange={setLanguage}
+          onClose={() => setShowLangModal(false)}
+        />
+      )}
       <header className="sticky top-0 z-40 bg-white shadow flex items-center justify-between px-4 py-2">
         <Link to="/" className="text-xl font-bold tracking-tight">MovieApp</Link>
         {(brand || routeTitle) && (
@@ -70,7 +92,7 @@ export default function Layout() {
           </div>
         )}
         <div className="flex items-center gap-4">
-          <form onSubmit={e => { e.preventDefault(); const q = searchValue.trim(); if(q) window.location.href = `/search?q=${encodeURIComponent(q)}`; }} className="mr-4 relative">
+          <form onSubmit={e => { e.preventDefault(); const q = searchValue.trim(); if(q) navigate(`/search?q=${encodeURIComponent(q)}`); }} className="mr-4 relative">
             <input
               type="text"
               name="search"
@@ -114,18 +136,21 @@ export default function Layout() {
           </form>
           <nav className="space-x-4">
             <Link to="/movies" className="hover:underline">Movies</Link>
-            <Link to="/tv" className="hover:underline">TV Shows</Link>
+            <Link to="/tvs" className="hover:underline">TV Shows</Link>
           </nav>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="text-black p-1 rounded"
-          >
-            <option value="en-US">English</option>
-            <option value="he-IL">עברית</option>
-            <option value="fr-FR">Français</option>
-          </select>
-          <UserMenu user={user} onLogout={handleLogout} />
+          {isLanguagesLoaded && (
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="text-black p-1 rounded"
+            >
+              {languages.map(lang => (
+                <option key={lang.iso_639_1} value={lang.iso_639_1}>
+                  {lang.english_name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </header>
       <main className="max-w-6xl mx-auto">

@@ -1,6 +1,5 @@
 // src/api/tmdbApi.ts
 import axiosInstance from "./axiosInstance";
-import { getUserCountryCode } from "../utils/locationUtils";
 
 type GenreWithCount = {
   id: number;
@@ -11,20 +10,35 @@ type GenreWithCount = {
 
 // 1. 10 סדרות פופולריות
 export async function fetchPopularTVShows(language = "en-US") {
-  const res = await axiosInstance.get(`/tv/popular?language=${language}`);
-  return res.data.results.slice(0, 10);
+  try {
+    const res = await axiosInstance.get(`/tv/popular?language=${language}`);
+    return res.data.results.slice(0, 10);
+  } catch (error) {
+    console.error("Failed to fetch popular TV shows:", error);
+    return [];
+  }
 }
 
 // 2. 10 סרטים פופולריים
 export async function fetchPopularMovies(language = "en-US") {
-  const res = await axiosInstance.get(`/movie/popular?language=${language}`);
-  return res.data.results.slice(0, 10);
+  try {
+    const res = await axiosInstance.get(`/movie/popular?language=${language}`);
+    return res.data.results.slice(0, 10);
+  } catch (error) {
+    console.error("Failed to fetch popular movies:", error);
+    return [];
+  }
 }
 
 // 3. 10 שחקנים פופולריים
 export async function fetchPopularPeople(language = "en-US") {
-  const res = await axiosInstance.get(`/person/popular?language=${language}`);
-  return res.data.results.slice(0, 10);
+  try {
+    const res = await axiosInstance.get(`/person/popular?language=${language}`);
+    return res.data.results.slice(0, 10);
+  } catch (error) {
+    console.error("Failed to fetch popular people:", error);
+    return [];
+  }
 }
 
 // 4. רשימת ז'נרים
@@ -133,9 +147,13 @@ export async function fetchAllGenres(language = "en-US") {
 }
 
 // פונקציה שמחזירה 10 סרטים פופולריים לפי מדינת מקור (discover + with_origin_country)
-export async function fetchPopularMoviesByUserCountry(language = "en-US") {
+export async function fetchPopularMoviesByUserCountry(language = "en-US", countryCode?: string) {
   try {
-    const countryCode = await getUserCountryCode();
+    // קבלת קוד מדינה מהקונטקסט או פרמטר
+    if (!countryCode) {
+      // נסה לשלוף מה-localStorage או ברירת מחדל
+      countryCode = localStorage.getItem("countryCode") || "US";
+    }
     if (!countryCode) throw new Error("No country code found");
     const moviesRes = await axiosInstance.get(
       `/discover/movie?language=${language}&sort_by=popularity.desc&page=1&with_origin_country=${countryCode}`
@@ -143,23 +161,34 @@ export async function fetchPopularMoviesByUserCountry(language = "en-US") {
     return moviesRes.data.results.slice(0, 10);
   } catch (e) {
     // fallback: מחזיר סרטים פופולריים גלובליים
-    const fallbackRes = await axiosInstance.get(`/movie/popular?language=${language}`);
-    return fallbackRes.data.results.slice(0, 10);
+    try {
+      const fallbackRes = await axiosInstance.get(`/movie/popular?language=${language}`);
+      return fallbackRes.data.results.slice(0, 10);
+    } catch (err) {
+      console.error("Failed to fetch popular movies by user country:", err);
+      return [];
+    }
   }
 }
 // 10 סדרות פופולריות לפי מדינת מקור (discover + with_origin_country)
-export async function fetchPopularTVShowsByUserCountry(language = "en-US") {
+export async function fetchPopularTVShowsByUserCountry(language = "en-US", countryCode?: string) {
   try {
-    const countryCode = await getUserCountryCode();
+    if (!countryCode) {
+      countryCode = localStorage.getItem("countryCode") || "US";
+    }
     if (!countryCode) throw new Error("No country code found");
     const showsRes = await axiosInstance.get(
       `/discover/tv?language=${language}&sort_by=popularity.desc&page=1&with_origin_country=${countryCode}`
     );
     return showsRes.data.results.slice(0, 10);
   } catch (e) {
-    // fallback: מחזיר סדרות פופולריות גלובליות
-    const fallbackRes = await axiosInstance.get(`/tv/popular?language=${language}`);
-    return fallbackRes.data.results.slice(0, 10);
+    try {
+      const fallbackRes = await axiosInstance.get(`/tv/popular?language=${language}`);
+      return fallbackRes.data.results.slice(0, 10);
+    } catch (err) {
+      console.error("Failed to fetch popular TV shows by user country:", err);
+      return [];
+    }
   }
 }
 
@@ -211,4 +240,30 @@ export async function fetchPersonCredits(id: number, language = "en-US") {
   }
 }
 
-// נמחקה ההגדרה המקומית של fetchMediaList (עברה לקובץ fetchMediaList.ts)
+// פונקציה גנרית לטריילרים
+export async function fetchPopularTrailers(type: "movie" | "tv", language = "en-US") {
+  const res = await axiosInstance.get(`/${type}/popular?language=${language}`);
+  const items = res.data.results.slice(0, 10);
+
+  const trailers = await Promise.all(
+    items.map(async (item: any) => {
+      const videoRes = await axiosInstance.get(
+        `/${type}/${item.id}/videos?language=${language}`
+      );
+      const trailer = videoRes.data.results.find(
+        (v: any) => v.type === "Trailer" && v.site === "YouTube"
+      );
+      return { ...item, trailerKey: trailer ? trailer.key : null };
+    })
+  );
+
+  return trailers;
+}
+
+// שמירה לאחור: פונקציות ישנות (אפשר למחוק בהמשך)
+// export async function fetchPopularMovieTrailers(language = "en-US") {
+//   return fetchPopularTrailers("movie", language);
+// }
+// export async function fetchPopularTVTrailers(language = "en-US") {
+//   return fetchPopularTrailers("tv", language);
+// }

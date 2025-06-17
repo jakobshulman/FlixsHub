@@ -4,14 +4,20 @@ import "./index.css";
 import App from "./App";
 import { BrowserRouter } from "react-router-dom";
 import { LanguageProvider } from "./context/LanguageContext";
+import { GenresProvider } from "./context/GenresContext";
+import { CountryProvider } from "./context/CountryContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(
   <React.StrictMode>
+    <CountryProvider>
       <LanguageProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <GenresProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </GenresProvider>
       </LanguageProvider>
+    </CountryProvider>
   </React.StrictMode>
 );

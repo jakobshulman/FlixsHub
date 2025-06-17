@@ -2,8 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import MediaCard from "./MediaCard";
 import { useLanguage } from "../context/LanguageContext";
 import { useCountry } from "../context/CountryContext";
-import { useGenres } from "../context/GenresContext";
 import { fetchMediaList } from "../api/fetchMediaList";
+import FilterBar, { FilterValues } from "./FilterBar";
 
 interface GenericInfiniteGridProps {
   title: string;
@@ -15,13 +15,19 @@ interface GenericInfiniteGridProps {
 export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = false }: GenericInfiniteGridProps) {
   const { language } = useLanguage();
   const { countryCode } = useCountry();
-  const { genres } = useGenres();
 
   const [items, setItems] = useState<any[]>([]);
-  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
-  const [minRating, setMinRating] = useState<number>(0);
-  const [year, setYear] = useState<number | undefined>(undefined);
-  const [sortBy, setSortBy] = useState<string>("popularity.desc");
+  const [sort, setSort] = useState<string>("popularity.desc");
+  const [filter, setFilter] = useState<FilterValues>({
+    selectedGenres: [],
+    minRating: 0,
+    maxRating: 10,
+    minYear: 1950,
+    maxYear: new Date().getFullYear(),
+    sortBy: "popularity.desc",
+    language: "", // ברירת מחדל: כל השפות
+  });
+  const [genres, setGenres] = useState<number[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const loader = useRef<HTMLDivElement | null>(null);
@@ -35,39 +41,31 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
   };
 
   useEffect(() => {
+    // אין לעדכן את שפת האפליקציה לפי הפילטר
     resetState();
-  }, [selectedGenres, minRating, sortBy, year, language, byRegion, type, countryCode]);
+  }, [sort, filter, genres, language, byRegion, type, countryCode]);
 
   const loadMore = useCallback(async () => {
     if (!hasMore) return;
-
-    const genreIds = selectedGenres.length > 0 ? selectedGenres : [null];
-    const merged: any[] = [];
+    const result = await fetchMediaList({
+      type,
+      language, // שפת תוצאות (UI)
+      originalLanguage: filter.language || undefined, // שפת הסרט/סדרה, רק אם נבחרה בפילטר
+      page,
+      genreIds: filter.selectedGenres && filter.selectedGenres.length > 0 ? filter.selectedGenres : genres,
+      countryCode: byRegion ? countryCode : null,
+      minRating: filter.minRating,
+      maxRating: filter.maxRating,
+      minYear: filter.minYear,
+      maxYear: filter.maxYear,
+      sortBy: filter.sortBy || sort,
+    });
     const seen = loadedIdsRef.current;
-
-    for (const genreId of genreIds) {
-      const result = await fetchMediaList({
-        type,
-        language,
-        page,
-        genreId: genreId ?? undefined,
-        countryCode: byRegion ? countryCode : null,
-        minRating,
-        sortBy,
-        year,
-      });
-
-      result.forEach((item: any) => {
-        if (!seen.has(item.id)) {
-          seen.add(item.id);
-          merged.push(item);
-        }
-      });
-    }
-
+    const merged = result.filter((item: any) => !seen.has(item.id));
+    merged.forEach((item: any) => seen.add(item.id));
     setItems((prev) => [...prev, ...merged]);
     setHasMore(merged.length > 0);
-  }, [page, selectedGenres, language, byRegion, type, countryCode, minRating, sortBy, year, hasMore]);
+  }, [page, sort, filter, genres, language, byRegion, type, countryCode, hasMore]);
 
   useEffect(() => {
     loadMore();
@@ -91,83 +89,18 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
   }, [hasMore]);
 
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      {/* כותרת ופילטרים מקובעים בראש הדף */}
-      <div className="sticky top-[64px] bg-white z-30 py-4 shadow-[0_4px_6px_-4px_rgba(0,0,0,0.1)] w-full px-4 sm:px-6 lg:px-8">
-        {/* כותרת */}
-        {/* <h1 className="text-2xl font-bold mb-4">{title}</h1> */}
-
-        {/* פילטרים */}
-        <div className="flex flex-wrap items-center gap-3 mb-2">
-          {genres.map((genre) => (
-            <button
-              key={genre.id}
-              onClick={() =>
-                setSelectedGenres((prev) =>
-                  prev.includes(genre.id)
-                    ? prev.filter((id) => id !== genre.id)
-                    : [...prev, genre.id]
-                )
-              }
-              className={`px-3 py-1 rounded-full text-sm border transition ${
-                selectedGenres.includes(genre.id)
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
-            >
-              {genre.name}
-            </button>
-          ))}
-          <button
-            onClick={() => setSelectedGenres([])}
-            className="text-sm text-red-500 underline"
-          >
-            אפס בחירה
-          </button>
-        </div>
-
-        <div className="flex flex-wrap gap-4 items-center">
-          <input
-            type="number"
-            value={minRating}
-            onChange={(e) => setMinRating(Number(e.target.value))}
-            placeholder="דירוג מינימלי (0-10)"
-            min={0}
-            max={10}
-            step={0.1}
-            className="w-32 px-3 py-1 rounded border text-sm"
-          />
-          <input
-            type="number"
-            value={year || ""}
-            onChange={(e) => setYear(e.target.value ? Number(e.target.value) : undefined)}
-            placeholder="שנה"
-            className="w-24 px-3 py-1 rounded border text-sm"
-          />
-          <div className="flex gap-2 text-sm">
-            {[
-              { label: "פופולריות", value: "popularity.desc" },
-              { label: "דירוג", value: "vote_average.desc" },
-              { label: "שנה", value: type === "movie" ? "primary_release_date.desc" : "first_air_date.desc" }
-            ].map(({ label, value }) => (
-              <button
-                key={value}
-                onClick={() => setSortBy(value)}
-                className={`px-3 py-1 rounded-full border transition ${
-                  sortBy === value
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 hover:bg-gray-200"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="max-w-6xl mx-auto">
+      <FilterBar
+        sort={sort}
+        onSortChange={setSort}
+        filter={filter}
+        onFilterChange={setFilter}
+        genres={genres}
+        onGenresChange={setGenres}
+      />
 
       {/* תצוגת כרטיסים */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
         {items.map((item, index) => (
           <MediaCard
             key={`${item.id}_${index}`}
@@ -181,7 +114,15 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
 
       {/* הודעה על חוסר תוצאות */}
       {items.length === 0 && !hasMore && (
-        <p className="text-center text-gray-500 mt-6">לא נמצאו תוצאות תואמות.</p>
+        <div className="text-center text-gray-500 mt-6 flex flex-col items-center gap-3">
+          <p>לא נמצאו תוצאות תואמות.</p>
+          <button
+            className="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-gray-900 rounded-full transition"
+            onClick={() => { setFilter({}); setGenres([]); }}
+          >
+            אפס סינון
+          </button>
+        </div>
       )}
 
       {hasMore && <div ref={loader} className="h-10" />}

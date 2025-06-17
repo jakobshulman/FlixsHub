@@ -12,6 +12,7 @@ import TVsByRegion from "./pages/TVsByRegion";
 import { GenresProvider } from "./context/GenresContext";
 import { CountryProvider } from "./context/CountryContext";
 import SearchResults from "./pages/SearchResults";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="movies-by-region" element={<MoviesByRegion />} />
             <Route path="tvs-by-region" element={<TVsByRegion />} />
             <Route path="search" element={<SearchResults />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </GenresProvider>

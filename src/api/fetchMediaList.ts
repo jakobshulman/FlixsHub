@@ -2,24 +2,30 @@ import axiosInstance from "./axiosInstance";
 
 type FetchMediaListParams = {
   type: "movie" | "tv";              // סוג מדיה
-  language: string;                  // שפה
+  language: string;                  // שפת התוצאות (UI)
+  originalLanguage?: string;         // שפת הסרט/סדרה
   page?: number;                     // עמוד
-  genreId?: number | null;          // ז'אנר
+  genreIds?: number[];              // שינוי: מערך ז'אנרים
   countryCode?: string | null;      // מדינת מקור
   minRating?: number;               // דירוג מינימלי
+  maxRating?: number;               // דירוג מקסימלי
+  minYear?: number;                 // שנה מינימלית
+  maxYear?: number;                 // שנה מקסימלית
   sortBy?: string;                  // קריטריון מיון
-  year?: number;                    // שנה
 };
 
 export async function fetchMediaList({
   type,
   language,
+  originalLanguage,                 // חדש
   page,
-  genreId,
+  genreIds,                          // שינוי
   countryCode,
   minRating,
+  maxRating,
+  minYear,
+  maxYear,
   sortBy,
-  year,
 }: FetchMediaListParams): Promise<any[]> {
   const isDiscover = !!page;
   const url = isDiscover ? `/discover/${type}` : `/${type}/popular`;
@@ -27,13 +33,14 @@ export async function fetchMediaList({
   const params: Record<string, any> = { language };
 
   if (page) params.page = page;
-  if (genreId) params.with_genres = genreId;
+  if (genreIds && genreIds.length > 0) params.with_genres = genreIds.join(","); // שינוי
   if (countryCode) params.with_origin_country = countryCode;
-  if (minRating) params["vote_average.gte"] = minRating;
+  if (minRating !== undefined) params["vote_average.gte"] = minRating;
+  if (maxRating !== undefined) params["vote_average.lte"] = maxRating;
   if (sortBy) params.sort_by = sortBy;
-  if (year) {
-    params[type === "movie" ? "primary_release_year" : "first_air_date_year"] = year;
-  }
+  if (minYear) params[type === "movie" ? "primary_release_date.gte" : "first_air_date.gte"] = `${minYear}-01-01`;
+  if (maxYear) params[type === "movie" ? "primary_release_date.lte" : "first_air_date.lte"] = `${maxYear}-12-31`;
+  if (originalLanguage) params.with_original_language = originalLanguage; // סינון לפי שפת מקור
 
   try {
     const { data } = await axiosInstance.get(url, { params });

@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useState } from "react";
-import { getUserLocation } from "../utils/locationUtils";
+import { fetchLanguages, Language as LanguageType } from "../api/fetchLanguages";
+import { useCountry } from "./CountryContext";
 
-function getDefaultLanguage(): string {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('language');
-    if (saved) return saved;
-    if (navigator.language) return navigator.language;
-  }
-  return 'en-US';
-}
+// מיפוי קוד מדינה לשפת ברירת מחדל
+const countryToLanguage: Record<string, string> = {
+  IL: "he",
+  US: "en-US",
+  GB: "en-GB",
+  FR: "fr",
+  RU: "ru",
+  // ...השלם לפי הצורך
+};
 
 function savePreferredLanguage(lang: string): void {
   if (typeof window !== 'undefined') {
@@ -19,70 +21,80 @@ function savePreferredLanguage(lang: string): void {
 type LanguageContextType = {
   language: string;
   setLanguage: (lang: string) => void;
+  languages: LanguageType[];
+  isLanguageInitialized: boolean;
+  wasLanguageAutoDetected: boolean;
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Simple country-to-language mapping
-const countryToLanguage: Record<string, string> = {
-  IL: "he-IL",
-  FR: "fr-FR",
-  US: "en-US",
-  GB: "en-GB",
-  DE: "de-DE",
-  ES: "es-ES",
-  RU: "ru-RU",
-  CN: "zh-CN",
-  JP: "ja-JP",
-  // Add more as needed
-};
-
-async function detectAndSetLanguage(setLanguage: (lang: string) => void) {
-  try {
-    const position = await getUserLocation();
-    const { latitude, longitude } = position.coords;
-    // Use a free reverse geocoding API to get country code
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-    );
-    const data = await res.json();
-    const countryCode = data.address?.country_code?.toUpperCase();
-    if (countryCode && countryToLanguage[countryCode]) {
-      setLanguage(countryToLanguage[countryCode]);
-    } else {
-      setLanguage("en-US");
-    }
-  } catch (e) {
-    setLanguage("en-US");
-  }
+function processLanguages(langs: LanguageType[]): LanguageType[] {
+  return langs
+    .map(lang => ({
+      ...lang,
+      name: lang.name === lang.english_name ? lang.english_name : lang.name
+    }))
+    .sort((a, b) => a.english_name.localeCompare(b.english_name));
 }
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<string>(() => getDefaultLanguage());
+  const [language, setLanguageState] = useState<string>("");
+  const [languages, setLanguages] = useState<LanguageType[]>([]);
+  const [isLanguageInitialized, setIsLanguageInitialized] = useState(false);
+  const [wasLanguageAutoDetected, setWasLanguageAutoDetected] = useState(false);
+  const { countryCode } = useCountry();
+  const initializedRef = React.useRef(false);
 
   const setLanguage = (lang: string) => {
     savePreferredLanguage(lang);
     setLanguageState(lang);
+    setIsLanguageInitialized(true);
+    // לא לעדכן wasLanguageAutoDetected כאן, רק באתחול אוטומטי
+    console.log("[LanguageContext] setLanguage called:", lang);
   };
 
+  // קבע שפה דיפולטיבית רק פעם אחת, אחרי שיש countryCode
   React.useEffect(() => {
+    if (initializedRef.current) return;
+    if (!countryCode) return;
+    let lang = "en-US";
+    let autoDetected = false;
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('language');
-      if (!saved) {
-        detectAndSetLanguage(setLanguage);
+      if (saved) lang = saved;
+      else if (countryCode && countryToLanguage[countryCode]) {
+        lang = countryToLanguage[countryCode];
+        autoDetected = true;
       }
     }
-  }, []);
+    setLanguage(lang); // תמיד שומר ב-localStorage
+    setIsLanguageInitialized(true);
+    setWasLanguageAutoDetected(autoDetected);
+    initializedRef.current = true;
+    console.log("[LanguageContext] Detected language:", lang, "for country:", countryCode, "autoDetected:", autoDetected);
+  }, [countryCode]);
+
+  // טען שפות רק אחרי שהשפה מאותחלת ואינה ריקה
+  React.useEffect(() => {
+    if (!isLanguageInitialized || !language) return;
+    fetchLanguages().then((langs) => setLanguages(processLanguages(langs)));
+  }, [isLanguageInitialized, language]);
+
+  React.useEffect(() => {
+    if (language) {
+      console.log("[LanguageContext] language in useEffect:", language);
+    }
+  }, [language]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage }}>
+    <LanguageContext.Provider value={{ language, setLanguage, languages, isLanguageInitialized, wasLanguageAutoDetected }}>
       {children}
     </LanguageContext.Provider>
   );
 };
 
-export const useLanguage = (): LanguageContextType => {
-  const context = useContext(LanguageContext);
-  if (!context) throw new Error("useLanguage must be used within LanguageProvider");
-  return context;
-};
+export function useLanguage() {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
+  return ctx;
+}

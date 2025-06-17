@@ -2,10 +2,12 @@ import FeaturedTrailer from "../components/FeaturedTrailer";
 import { fetchPopularMovies, fetchPopularMoviesByUserCountry, fetchPopularTVShows, fetchPopularTVShowsByUserCountry, fetchTopGenres } from "../api/tmdbApi";
 import HorizontalScroller from "../components/HorizontalScroller";
 import { useLanguage } from "../context/LanguageContext";
+import { useCountry } from "../context/CountryContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const { language } = useLanguage();
+  const { countryCode } = useCountry();
   const navigate = useNavigate();
 
   return (
@@ -19,7 +21,7 @@ export default function Home() {
       />
       <HorizontalScroller
         title="Popular Movies In Your Region"
-        fetchItems={() => fetchPopularMoviesByUserCountry(language)}
+        fetchItems={() => fetchPopularMoviesByUserCountry(language, countryCode || undefined)}
         type="movie"
         onTitleClick={() => navigate("/movies-by-region")}
       />
@@ -31,7 +33,7 @@ export default function Home() {
       />
       <HorizontalScroller
         title="Popular TV Shows In Your Region"
-        fetchItems={() => fetchPopularTVShowsByUserCountry(language)}
+        fetchItems={() => fetchPopularTVShowsByUserCountry(language, countryCode || undefined)}
         type="tv"
         onTitleClick={() => navigate("/tvs-by-region")}
       />

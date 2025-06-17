@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getUserCountryCode } from "../utils/locationUtils";
+import { getCountryCodeByIP } from "../utils/ipGeolocation";
 
 interface CountryContextType {
   countryCode: string | null;
@@ -13,8 +13,11 @@ export const CountryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     let mounted = true;
-    getUserCountryCode().then((code) => {
-      if (mounted && code) setCountryCode(code);
+    getCountryCodeByIP().then((code) => {
+      if (mounted && code) {
+        setCountryCode(code);
+        console.log("[CountryContext] Detected country code:", code);
+      }
     });
     return () => { mounted = false; };
   }, []);
