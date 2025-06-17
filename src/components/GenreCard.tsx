@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 // פונקציה ליצירת גרדיאנט רנדומלי עקבי
 function getRandomGradient(id: number) {
@@ -18,12 +19,18 @@ function getRandomGradient(id: number) {
 }
 
 export default function GenreCard({ id, name }: { id: number; name: string }) {
+  const navigate = useNavigate();
+
   return (
     <div
-      className="w-[180px] aspect-[2/3] flex items-center justify-center rounded shadow text-xl font-bold bg-cover bg-center"
+      className="w-[172px] aspect-[2/3] flex items-center justify-center rounded-3xl shadow bg-cover bg-center cursor-pointer box-border"
       style={{ background: getRandomGradient(id) }}
+      onClick={() => navigate(`/genre/${id}`)}
+      title={name}
     >
-      <span className="text-center w-full h-[2.5rem] flex items-center justify-center leading-tight break-words text-ellipsis overflow-hidden whitespace-normal drop-shadow-md">
+      <span
+        className="text-center w-full h-[3.5rem] flex items-center justify-center leading-tight break-words text-ellipsis overflow-hidden whitespace-normal drop-shadow-md text-white text-[2rem] "
+      >
         {name}
       </span>
     </div>

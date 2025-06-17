@@ -49,10 +49,10 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
   return (
     <div className="fixed left-0 right-0 bottom-0 top-[72px] bg-black/40 z-50 flex items-start justify-center" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative max-h-[calc(100vh-72px)] overflow-y-auto mt-4" onClick={e => e.stopPropagation()}>
-        <button className="absolute top-2 left-2 text-gray-400 hover:text-gray-700 text-2xl" onClick={onClose} aria-label="סגור">×</button>
-        <h3 className="text-xl font-bold mb-4 text-center">פילטרים</h3>
+        <button className="absolute top-2 left-2 text-gray-400 hover:text-gray-700 text-2xl" onClick={onClose} aria-label="Close">×</button>
+        <h3 className="text-xl font-bold mb-4 text-center">Filters</h3>
         <div className="mb-6">
-          <label className="block text-sm mb-2 font-semibold">טווח שנים:</label>
+          <label className="block text-sm mb-2 font-semibold">Year Range:</label>
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-500 w-10 text-center">1950</span>
             <div className="flex-1 px-2">
@@ -77,7 +77,7 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
         </div>
         <div className={`${siteConfig.divider.thickness} ${siteConfig.divider.border} my-4`} />
         <div className="mb-6">
-          <label className="block text-sm mb-2 font-semibold">טווח דירוג:</label>
+          <label className="block text-sm mb-2 font-semibold">Rating Range:</label>
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-500 w-10 text-center">{ratingRange[0]}</span>
             <div className="flex-1 px-2">
@@ -102,13 +102,13 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
         </div>
         <div className={`${siteConfig.divider.thickness} ${siteConfig.divider.border} my-4`} />
         <div className="mb-3">
-          <label className="block text-sm mb-1 font-semibold">שפת הסרט:</label>
+          <label className="block text-sm mb-1 font-semibold">Movie Language:</label>
           <select
             value={language}
             onChange={e => setLanguage(e.target.value)}
             className="border rounded px-2 py-1 text-sm w-full"
           >
-            <option value="">בחר שפה</option>
+            <option value="">Choose language</option>
             {languages.map(lang => (
               <option key={lang.iso_639_1} value={lang.iso_639_1}>
                 {lang.english_name}
@@ -117,7 +117,7 @@ export default function FilterModal({ initial, onApply, onClose }: FilterModalPr
             ))}
           </select>
         </div>
-        <button className={`mt-4 w-full ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryHover} ${siteConfig.buttonColors.primaryText} py-2 rounded transition`} onClick={handleApply}>החל סינון</button>
+        <button className={`mt-4 w-full ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryHover} ${siteConfig.buttonColors.primaryText} py-2 rounded transition`} onClick={handleApply}>Apply Filter</button>
       </div>
     </div>
   );

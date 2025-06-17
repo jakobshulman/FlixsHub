@@ -13,6 +13,7 @@ export default function PersonDetails() {
   const [credits, setCredits] = useState<any[]>([]);
   const [showFullBio, setShowFullBio] = useState(false);
   const [wikiBio, setWikiBio] = useState<string | null>(null);
+  const [knownForLimit, setKnownForLimit] = useState(10);
 
   useEffect(() => {
     if (!id) return;
@@ -26,12 +27,13 @@ export default function PersonDetails() {
       }
     });
     fetchPersonCredits(Number(id), language).then(setCredits);
+    setKnownForLimit(10); // reset limit on id/language change
   }, [id, language]);
 
   if (!person) return <p className="p-4">Loading...</p>;
 
   return (
-    <div className="p-4 max-w-4xl mx-auto font-sans">
+    <div className="p-4 font-sans">
 
       <div className="flex flex-col md:flex-row gap-6">
         {person.profile_path ? (
@@ -56,7 +58,7 @@ export default function PersonDetails() {
                 className="ml-2 text-blue-500 underline text-sm"
                 onClick={() => setShowFullBio(true)}
               >
-                קרא עוד
+                Show more
               </button>
             ) : null}
             {((person.biography && showFullBio) || (wikiBio && showFullBio)) && (
@@ -64,7 +66,7 @@ export default function PersonDetails() {
                 className="ml-2 text-blue-500 underline text-sm"
                 onClick={() => setShowFullBio(false)}
               >
-                הצג פחות
+                Show less
               </button>
             )}
             {wikiBio && (
@@ -75,7 +77,7 @@ export default function PersonDetails() {
                 className="ml-2 text-xs text-gray-500 underline cursor-pointer"
                 style={{ display: 'inline-block' }}
               >
-                (המידע מתוך ויקיפדיה)
+                (Wikipedia)
               </a>
             )}
           </p>
@@ -86,8 +88,13 @@ export default function PersonDetails() {
         <div className="mt-10">
           <HorizontalScroller
             title="Known For"
-            fetchItems={async () => credits.slice(0, 10)}
+            fetchItems={async () => credits.slice(0, knownForLimit)}
             type="mixed"
+            onScrollEnd={() => {
+              if (knownForLimit < credits.length) {
+                setKnownForLimit((prev) => Math.min(prev + 10, credits.length));
+              }
+            }}
           />
         </div>
       )}

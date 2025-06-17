@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import MediaCard from "./MediaCard";
 import GenreCard from "./GenreCard";
 
@@ -6,9 +6,17 @@ export type HorizontalScrollerProps = {
   title: string;
   fetchItems: () => Promise<any[]>;
   type: "movie" | "tv" | "genre" | "mixed";
+  onTitleClick?: () => void;
+  onScrollEnd?: () => void;
 };
 
-export default function HorizontalScroller({ title, fetchItems, type, onTitleClick }: HorizontalScrollerProps & { onTitleClick?: () => void }) {
+const arrowSVG = (
+  <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+    <path d="M9 6l6 6-6 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export default function HorizontalScroller({ title, fetchItems, type, onTitleClick, onScrollEnd }: HorizontalScrollerProps) {
   const [items, setItems] = useState<any[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
@@ -23,53 +31,47 @@ export default function HorizontalScroller({ title, fetchItems, type, onTitleCli
     return () => { mounted = false; };
   }, [fetchItems]);
 
-  const checkScroll = () => {
+  // הוספת useCallback ל-checkScroll כדי למנוע בעיית תלות
+  const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (el) {
       const scrollEnd = el.scrollLeft + el.clientWidth;
       setShowLeft(el.scrollLeft > 0);
-      setShowRight(scrollEnd < el.scrollWidth - 1); // תיקון תנאי לסגירה מדויקת
+      setShowRight(scrollEnd < el.scrollWidth - 1);
+      if (onScrollEnd && scrollEnd >= el.scrollWidth - 10) {
+        onScrollEnd();
+      }
     }
-  };
+  }, [onScrollEnd]);
 
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
-
     const visibleWidth = el.clientWidth;
     const currentScroll = el.scrollLeft;
-    const totalWidth = el.scrollWidth;
-
-    const remaining = direction === "right"
-      ? totalWidth - (currentScroll + visibleWidth)
-      : currentScroll;
-
-    if (remaining <= 0) return;
-
-    const scrollAmount = remaining >= visibleWidth ? visibleWidth : remaining;
-    const nextScroll = direction === "right" ? currentScroll + scrollAmount : currentScroll - scrollAmount;
-
-    el.scrollTo({ left: nextScroll, behavior: "smooth" });
-    setTimeout(checkScroll, 300);
+    el.scrollTo({
+      left: direction === "left" ? currentScroll - visibleWidth : currentScroll + visibleWidth,
+      behavior: "smooth",
+    });
   };
 
   useEffect(() => {
-    checkScroll();
+    checkScroll(); // Ensure arrows are shown on mount
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", checkScroll);
     window.addEventListener("resize", checkScroll);
-    return () => window.removeEventListener("resize", checkScroll);
-  }, [items]);
-
-  const arrowSVG = (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 31" className="w-8 h-12 fill-white">
-      <path d="M5.275 29.46a1.61 1.61 0 0 0 1.456 1.077c1.018 0 1.772-.737 1.772-1.737 0-.526-.277-1.186-.449-1.62l-4.68-11.912L8.05 3.363c.172-.442.45-1.116.45-1.625A1.7 1.7 0 0 0 6.728.002a1.6 1.6 0 0 0-1.456 1.09L.675 12.774c-.301.775-.677 1.744-.677 2.495 0 .754.376 1.705.677 2.498L5.272 29.46Z"></path>
-    </svg>
-  );
+    return () => {
+      el.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, [items.length, checkScroll]);
 
   return (
     <div className="mb-6 relative">
       <h2 className="text-xl font-bold mb-2 px-4">
         {onTitleClick ? (
-          <span className="cursor-pointer text-blue-600 hover:underline" onClick={onTitleClick}>{title}</span>
+          <span className="cursor-pointer hover:underline" onClick={onTitleClick}>{title}</span>
         ) : (
           title
         )}
@@ -82,29 +84,31 @@ export default function HorizontalScroller({ title, fetchItems, type, onTitleCli
         {isHovering && showLeft && (
           <button
             onClick={() => scroll("left")}
-            className="absolute left-[-25px] top-1/2 -translate-y-1/2 bg-black/50 rounded-full w-12 h-12 z-20 flex items-center justify-center"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/80 border border-white shadow-lg rounded-full w-10 h-10 z-20 flex items-center justify-center transition-opacity duration-200 hover:bg-black/90"
             aria-label="Scroll Left"
+            style={{ opacity: 0.92 }}
           >
-            {arrowSVG}
+            <div className="-rotate-180">{arrowSVG}</div>
           </button>
         )}
         {isHovering && showRight && (
           <button
             onClick={() => scroll("right")}
-            className="absolute right-[-25px] top-1/2 -translate-y-1/2 bg-black/50 rounded-full w-12 h-12 z-20 flex items-center justify-center"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/80 border border-white shadow-lg rounded-full w-10 h-10 z-20 flex items-center justify-center transition-opacity duration-200 hover:bg-black/90"
             aria-label="Scroll Right"
+            style={{ opacity: 0.92 }}
           >
-            <div className="rotate-180">{arrowSVG}</div>
+            {arrowSVG}
           </button>
         )}
         <div
-          className="overflow-x-auto whitespace-nowrap px-4 flex gap-4 scroll-smooth scrollbar-hide"
+          className="overflow-x-auto whitespace-nowrap pl-4 pr-0 flex gap-4 scroll-smooth scrollbar-hide box-border"
           ref={scrollRef}
           onScroll={checkScroll}
         >
           {items.length === 0
             ? Array.from({ length: 10 }).map((_, idx) => (
-                <div className="flex-shrink-0 opacity-30 w-[180px] aspect-[2/3]" key={"placeholder-" + idx}>
+                <div className="flex-shrink-0 opacity-30 w-[172px] aspect-[2/3]" key={"placeholder-" + idx}>
                   {type === "genre" ? (
                     <div className="w-32 h-16 bg-gray-200 rounded animate-pulse" />
                   ) : (
@@ -118,7 +122,7 @@ export default function HorizontalScroller({ title, fetchItems, type, onTitleCli
                     <GenreCard id={item.id} name={item.name} />
                   </div>
                 ) : (
-                  <div className="flex-shrink-0 w-[180px] aspect-[2/3]" key={item.id}>
+                  <div className="flex-shrink-0" key={item.id}>
                     <MediaCard
                       id={item.id}
                       title={item.title || item.name}

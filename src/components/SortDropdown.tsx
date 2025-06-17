@@ -7,9 +7,9 @@ interface SortDropdownProps {
 }
 
 const options = [
-  { label: "דירוג", value: "vote_average.desc" },
-  { label: "פופולריות", value: "popularity.desc" },
-  { label: "תאריך שחרור", value: "primary_release_date.desc" },
+  { label: "Rating", value: "vote_average.desc" },
+  { label: "Popularity", value: "popularity.desc" },
+  { label: "Release Date", value: "primary_release_date.desc" },
 ];
 
 export default function SortDropdown({ value, onChange }: SortDropdownProps) {
@@ -23,7 +23,7 @@ export default function SortDropdown({ value, onChange }: SortDropdownProps) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        מיון: {selected?.label || "בחר"}
+        Sort: {selected?.label || "Choose"}
       </button>
       {open && (
         <ul className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50" role="listbox">

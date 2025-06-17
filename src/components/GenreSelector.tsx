@@ -11,7 +11,6 @@ interface GenreSelectorProps {
 const colorMap: Record<string, string> = {
   yellow: `focus:ring-yellow-400 ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryText} ${siteConfig.buttonColors.primaryBorder}`,
   blue: "focus:ring-blue-400 bg-blue-300 text-gray-900 border-blue-400",
-  // ניתן להוסיף צבעים נוספים
 };
 
 export default function GenreSelector({ genres, selected, onChange, color = "yellow" }: GenreSelectorProps) {

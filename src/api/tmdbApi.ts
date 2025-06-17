@@ -101,7 +101,7 @@ export async function fetchPopularTVTrailers(language = "en-US") {
   return trailers;
 }
 // 7. פרטי סרט כולל קאסט
-export async function fetchMovieDetails(id: number, language = "en-US") {
+export async function fetchMovieDetails(id: number, language = "en-US", castLimit = 20) {
   const [movieRes, creditsRes, videosRes] = await Promise.all([
     axiosInstance.get(`/movie/${id}?language=${language}`),
     axiosInstance.get(`/movie/${id}/credits?language=${language}`),
@@ -109,7 +109,7 @@ export async function fetchMovieDetails(id: number, language = "en-US") {
   ]);
 
   const movie = movieRes.data;
-  const cast = creditsRes.data.cast.slice(0, 10); // מציג רק את 10 הראשיים
+  const cast = creditsRes.data.cast.slice(0, castLimit); // מציג את הראשונים לפי castLimit
   const crew = creditsRes.data.crew.filter((m: any) => m.job === "Director");
   const videos = videosRes.data;
 
@@ -118,10 +118,11 @@ export async function fetchMovieDetails(id: number, language = "en-US") {
     cast,
     director: crew.length > 0 ? crew.map((d: any) => d.name).join(", ") : null,
     videos,
+    _allCast: creditsRes.data.cast // שמור את כל הקאסט למקרה של טעינה דינמית
   };
 }
 // 8. פרטי סדרה כולל קאסט
-export async function fetchTVDetails(id: number, language = "en-US") {
+export async function fetchTVDetails(id: number, language = "en-US", castLimit = 20) {
   const [showRes, creditsRes, videosRes] = await Promise.all([
     axiosInstance.get(`/tv/${id}?language=${language}`),
     axiosInstance.get(`/tv/${id}/credits?language=${language}`),
@@ -129,7 +130,7 @@ export async function fetchTVDetails(id: number, language = "en-US") {
   ]);
 
   const show = showRes.data;
-  const cast = creditsRes.data.cast.slice(0, 10); // מציג רק את 10 הראשיים
+  const cast = creditsRes.data.cast.slice(0, castLimit); // מציג את הראשונים לפי castLimit
   const crew = creditsRes.data.crew.filter((m: any) => m.job === "Director");
   const videos = videosRes.data;
 
@@ -138,6 +139,7 @@ export async function fetchTVDetails(id: number, language = "en-US") {
     cast,
     director: crew.length > 0 ? crew.map((d: any) => d.name).join(", ") : null,
     videos,
+    _allCast: creditsRes.data.cast // שמור את כל הקאסט למקרה של טעינה דינמית
   };
 }
 // 9. מחזיר את כל הז'אנרים

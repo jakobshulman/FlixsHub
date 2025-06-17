@@ -33,13 +33,13 @@ export default function FilterBar({ sort, onSortChange, filter, onFilterChange, 
         className="px-4 py-2 bg-gray-100 rounded-full border hover:bg-gray-200 transition"
         onClick={() => setShowFilter(true)}
       >
-        פילטר
+        Filter
       </button>
       <button
         className="px-4 py-2 bg-gray-100 rounded-full border hover:bg-gray-200 transition"
         onClick={() => setShowGenres(true)}
       >
-        ז'אנרים
+        Genres
       </button>
       {showFilter && (
         <FilterModal

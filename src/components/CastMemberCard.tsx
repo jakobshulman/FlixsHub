@@ -17,10 +17,10 @@ const CastMemberCard: React.FC<CastMemberProps> = ({ actor }) => (
         <img
           src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
           alt={actor.name}
-          className="rounded mb-2 mx-auto w-[120px] h-[180px] object-cover hover:shadow-lg transition cursor-pointer"
+          className="rounded-2xl mb-2 mx-auto w-[120px] h-[180px] object-cover hover:shadow-lg transition cursor-pointer"
         />
       ) : (
-        <div className="w-[120px] h-[180px] bg-gray-300 rounded mb-2 mx-auto cursor-pointer" />
+        <div className="w-[120px] h-[180px] bg-gray-300 rounded-2xl mb-2 mx-auto cursor-pointer" />
       )}
     </Link>
     <p className="font-medium whitespace-nowrap text-sm">{actor.name}</p>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import MediaCard from "./MediaCard";
 import { useLanguage } from "../context/LanguageContext";
 import { useCountry } from "../context/CountryContext";
@@ -6,16 +6,23 @@ import { fetchMediaList } from "../api/fetchMediaList";
 import FilterBar, { FilterValues } from "./FilterBar";
 import { siteConfig } from "../config/siteConfig";
 
+type MediaListResult = {
+  results: any[];
+  total_pages: number;
+  page: number;
+};
+
 interface GenericInfiniteGridProps {
   title: string;
   type: "movie" | "tv";
   getTitle?: (item: any) => string;
   byRegion?: boolean;
+  genres?: number[];
 }
 
-export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = false }: GenericInfiniteGridProps) {
+export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = false, genres: genresProp }: GenericInfiniteGridProps) {
   const { language } = useLanguage();
-  const { countryCode } = useCountry();
+  const { countryCode, countryName } = useCountry();
 
   const [items, setItems] = useState<any[]>([]);
   const [sort, setSort] = useState<string>("popularity.desc");
@@ -28,11 +35,14 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
     sortBy: "popularity.desc",
     language: "", // ברירת מחדל: כל השפות
   });
-  const [genres, setGenres] = useState<number[]>([]);
+  const [genres, setGenres] = useState<number[]>(genresProp || []);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const loader = useRef<HTMLDivElement | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
   const loadedIdsRef = useRef<Set<number>>(new Set());
+  const [columns, setColumns] = useState(5);
 
   const resetState = () => {
     setItems([]);
@@ -41,16 +51,31 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
     loadedIdsRef.current = new Set();
   };
 
+  // איפוס סטייט מלא ב-change פילטרים/שפה/סורט
   useEffect(() => {
-    resetState();
+    setItems([]);
+    setHasMore(true);
+    loadedIdsRef.current = new Set();
+    setPage(1);
   }, [sort, filter, genres, language, byRegion, type, countryCode]);
 
+  // לוגים לדיבאג
+  useEffect(() => {
+    // console.log('[DEBUG] page:', page, 'isLoading:', isLoading, 'hasMore:', hasMore, 'items.length:', items.length);
+  }, [page, isLoading, hasMore, items]);
+
+  // הגדרת loadMore לפני כל useEffect שמשתמש בו
   const loadMore = useCallback(async () => {
-    if (!hasMore) return;
-    const result = await fetchMediaList({
+    // console.log('[DEBUG] loadMore called, page:', page);
+    if (!hasMore) {
+      // console.log('[DEBUG] loadMore: hasMore is false, returning');
+      return;
+    }
+    setIsLoading(true);
+    const resultObj: MediaListResult = await fetchMediaList({
       type,
-      language, // שפת תוצאות (UI)
-      originalLanguage: filter.language || undefined, // שפת הסרט/סדרה, רק אם נבחרה בפילטר
+      language,
+      originalLanguage: filter.language || undefined,
       page,
       genreIds: filter.selectedGenres && filter.selectedGenres.length > 0 ? filter.selectedGenres : genres,
       countryCode: byRegion ? countryCode : null,
@@ -60,58 +85,151 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
       maxYear: filter.maxYear,
       sortBy: filter.sortBy || sort,
     });
+    const { results, total_pages } = resultObj;
+    // console.log('[DEBUG] fetchMediaList result:', results);
     const seen = loadedIdsRef.current;
-    const merged = result.filter((item: any) => !seen.has(item.id));
+    const merged = results.filter((item: any) => !seen.has(item.id));
     merged.forEach((item: any) => seen.add(item.id));
-    setItems((prev) => [...prev, ...merged]);
-    setHasMore(merged.length > 0);
+    setItems((prev) => {
+      const updated = [...prev, ...merged];
+      // console.log('[DEBUG] setItems, new length:', updated.length);
+      return updated;
+    });
+    setHasMore(page < total_pages);
+    setIsLoading(false);
+    // console.log('[DEBUG] loadMore finished, hasMore:', page < total_pages);
   }, [page, sort, filter, genres, language, byRegion, type, countryCode, hasMore]);
 
+  // טעינה בכל שינוי page
   useEffect(() => {
-    loadMore();
-  }, [loadMore]);
-
-  useEffect(() => {
-    if (!hasMore) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setPage((prev) => prev + 1);
-      }
-    }, { threshold: 1 });
-
-    const el = loader.current;
-    if (el) observer.observe(el);
-
-    return () => {
-      if (el) observer.unobserve(el);
+    let cancelled = false;
+    const fetchPage = async () => {
+      setIsLoading(true);
+      await loadMore();
+      if (!cancelled) setIsLoading(false);
     };
-  }, [hasMore]);
+    fetchPage();
+    return () => { cancelled = true; };
+  }, [page, loadMore]);
+
+  useEffect(() => {
+    // Calculate columns based on container width
+    function updateColumns() {
+      if (gridRef.current) {
+        const width = gridRef.current.offsetWidth;
+        const colCount = Math.max(1, Math.floor(width / 190));
+        setColumns(colCount);
+      }
+    }
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
+
+  // שמירה של הערכים האחרונים
+  const lastDeps = useRef({ sort, filter, genres, language, byRegion, type, countryCode });
+
+  useEffect(() => {
+    const depsChanged =
+      lastDeps.current.sort !== sort ||
+      JSON.stringify(lastDeps.current.filter) !== JSON.stringify(filter) ||
+      JSON.stringify(lastDeps.current.genres) !== JSON.stringify(genres) ||
+      lastDeps.current.language !== language ||
+      lastDeps.current.byRegion !== byRegion ||
+      lastDeps.current.type !== type ||
+      lastDeps.current.countryCode !== countryCode;
+    if (depsChanged) {
+      setItems([]);
+      setHasMore(true);
+      loadedIdsRef.current = new Set();
+      setPage(1);
+      lastDeps.current = { sort, filter, genres, language, byRegion, type, countryCode };
+    }
+  }, [sort, filter, genres, language, byRegion, type, countryCode]);
+
+  // שמור observer ברפרנס
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // callback ref ל-loader
+  const loaderCallback = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    if (node && hasMore) {
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && !isLoading) {
+          setPage((prev) => prev + 1);
+        }
+      }, { threshold: 1 });
+      observerRef.current.observe(node);
+    }
+  }, [hasMore, isLoading]);
+
+  // טעינה אוטומטית של דף נוסף אחרי טעינה ראשונית עם לוגים
+  useEffect(() => {
+    // console.log('[DEBUG] auto-load next page effect: items.length =', items.length, 'page =', page);
+    if (items.length > 0 && page === 1) {
+      const timeout = setTimeout(() => {
+        // console.log('[DEBUG] setPage(2) from auto-load next page effect');
+        setPage(2);
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [items, page]);
+
+  // טעינה אוטומטית של עמודים נוספים אם אין מספיק תוצאות לגלילה
+  useEffect(() => {
+    if (!isLoading && hasMore && items.length > 0 && document.body.scrollHeight <= window.innerHeight) {
+      setPage((prev) => prev + 1);
+    }
+  }, [items, isLoading, hasMore]);
+
+  // Calculate placeholders to fill last row
+  const placeholders = [];
+  if (!isLoading && items.length > 0 && columns > 0) {
+    const remainder = items.length % columns;
+    if (remainder !== 0) {
+      for (let i = 0; i < columns - remainder; i++) {
+        placeholders.push(<div key={`ph-${i}`} className="rounded-xl bg-gray-100 h-[290px]" />);
+      }
+    }
+  }
+
+  // החלפת {country} בשם המדינה אם קיים
+  const displayTitle = title.includes("{country}")
+    ? title.replace("{country}", countryName || countryCode || "")
+    : title.replace("Your Region", countryName || countryCode || "Your Region");
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <FilterBar
-        sort={sort}
-        onSortChange={setSort}
-        filter={filter}
-        onFilterChange={setFilter}
-        genres={genres}
-        onGenresChange={setGenres}
-      />
+    <div className="w-full">
+      <div className="fixed left-0 w-full z-50 bg-white shadow-md border-b" style={{ top: 55 }}>
+        <FilterBar
+          sort={sort}
+          onSortChange={setSort}
+          filter={filter}
+          onFilterChange={setFilter}
+          genres={genres}
+          onGenresChange={setGenres}
+        />
+      </div>
+      <div className="h-24" />
+      <h1 className="text-2xl font-bold mb-4 px-4">{displayTitle}</h1>
 
       {/* תצוגת כרטיסים */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-        {items.map((item, index) => (
-          <MediaCard
-            key={`${item.id}_${index}`}
-            id={item.id}
-            title={getTitle ? getTitle(item) : item.title || item.name}
-            poster={item.poster_path}
-            type={type}
-            genre_ids={item.genre_ids}
-            vote_average={item.vote_average}
-          />
+      <div ref={gridRef} className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] mt-4">
+        {items.map((item, idx) => (
+          <div key={item.id} className="p-1">
+            <MediaCard
+              id={item.id}
+              title={getTitle ? getTitle(item) : item.title || item.name}
+              poster={item.poster_path}
+              type={type}
+              genre_ids={item.genre_ids}
+              vote_average={item.vote_average}
+            />
+          </div>
         ))}
+        {placeholders}
       </div>
 
       {/* קו דק בין תיאור לקאסט */}
@@ -136,7 +254,7 @@ export default function GenericInfiniteGrid({ title, type, getTitle, byRegion = 
         </div>
       )}
 
-      {hasMore && <div ref={loader} className="h-10" />}
+      {hasMore && <div ref={loaderCallback} className="h-10" />}
     </div>
   );
 }

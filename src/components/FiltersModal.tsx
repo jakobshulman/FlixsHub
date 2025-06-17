@@ -27,10 +27,10 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
   const [maxRating, setMaxRating] = useState<number>(initialFilters.maxRating);
   const [year, setYear] = useState<number | undefined>(initialFilters.year);
   const [sortBy, setSortBy] = useState<string>(initialFilters.sortBy);
-  const [language, setLanguage] = useState<string>(initialFilters.language ?? ""); // ברירת מחדל: כל השפות
+  const [language, setLanguage] = useState<string>(initialFilters.language ?? ""); // Default: all languages
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // סגירה ב-ESC
+  // Close on ESC
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -39,7 +39,7 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
-  // מיקוד אוטומטי
+  // Autofocus
   useEffect(() => {
     modalRef.current?.focus();
   }, []);
@@ -74,30 +74,30 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
         <button
           className="absolute top-4 left-4 text-gray-400 hover:text-gray-700 text-2xl focus:outline-none"
           onClick={onClose}
-          aria-label="סגור סינון"
+          aria-label="Close filter"
         >
           ×
         </button>
-        <h3 className="text-2xl font-bold mb-6 text-center">סינון תוצאות</h3>
+        <h3 className="text-2xl font-bold mb-6 text-center">Filter Results</h3>
         <div className="mb-4">
-          <div className="mb-2 text-sm font-semibold text-gray-700 text-center">בחר ז'אנרים מועדפים (ניתן לבחור יותר מאחד):</div>
+          <div className="mb-2 text-sm font-semibold text-gray-700 text-center">Choose preferred genres (you can select more than one):</div>
           <GenreSelector genres={genres} selected={selectedGenres} onChange={setSelectedGenres} color="blue" />
           <button
             onClick={handleReset}
             className="block mx-auto mt-2 text-xs text-red-500 underline hover:text-red-700"
             tabIndex={0}
           >
-            איפוס הכל
+            Reset all
           </button>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-4">
           <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-600 mb-1">דירוג מינימלי (0-10):</span>
+            <span className="text-xs text-gray-600 mb-1">Minimum rating (0-10):</span>
             <input
               type="number"
               value={minRating}
               onChange={(e) => setMinRating(Number(e.target.value))}
-              placeholder="דירוג מינימלי"
+              placeholder="Minimum rating"
               min={0}
               max={10}
               step={0.1}
@@ -106,12 +106,12 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
             />
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-600 mb-1">דירוג מקסימלי (0-10):</span>
+            <span className="text-xs text-gray-600 mb-1">Maximum rating (0-10):</span>
             <input
               type="number"
               value={maxRating}
               onChange={(e) => setMaxRating(Number(e.target.value))}
-              placeholder="דירוג מקסימלי"
+              placeholder="Maximum rating"
               min={0}
               max={10}
               step={0.1}
@@ -120,19 +120,19 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
             />
           </div>
           <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-600 mb-1">שנה (אופציונלי):</span>
+            <span className="text-xs text-gray-600 mb-1">Year (optional):</span>
             <input
               type="number"
               value={year || ""}
               onChange={(e) => setYear(e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="שנה"
+              placeholder="Year"
               className="w-28 px-3 py-2 rounded-lg border-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               tabIndex={0}
             />
           </div>
         </div>
         <div className="mb-4">
-          <span className="text-xs text-gray-600 mb-1">שפה:</span>
+          <span className="text-xs text-gray-600 mb-1">Language:</span>
           <select
             value={language}
             onChange={e => setLanguage(e.target.value)}
@@ -146,12 +146,12 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
             ))}
           </select>
         </div>
-        <div className="mb-2 text-sm font-semibold text-gray-700 text-center">מיין לפי:</div>
+        <div className="mb-2 text-sm font-semibold text-gray-700 text-center">Sort by:</div>
         <div className="flex gap-2 justify-center mb-2">
           { [
-            { label: "פופולריות", value: "popularity.desc", desc: "סדר לפי פופולריות" },
-            { label: "דירוג", value: "vote_average.desc", desc: "סדר לפי דירוג גולשים" },
-            { label: "שנה", value: type === "movie" ? "primary_release_date.desc" : "first_air_date.desc", desc: "סדר לפי שנה" }
+            { label: "Popularity", value: "popularity.desc", desc: "Sort by popularity" },
+            { label: "Rating", value: "vote_average.desc", desc: "Sort by user rating" },
+            { label: "Year", value: type === "movie" ? "primary_release_date.desc" : "first_air_date.desc", desc: "Sort by year" }
           ].map(({ label, value, desc }) => (
             <button
               key={value}
@@ -172,7 +172,7 @@ export default function FiltersModal({ initialFilters, type, onApply, onClose }:
           className="block mx-auto mt-4 px-6 py-2 bg-blue-600 rounded-full font-bold hover:bg-blue-700 transition"
           onClick={handleApply}
         >
-          אישור
+          Apply
         </button>
       </div>
       <style>{`

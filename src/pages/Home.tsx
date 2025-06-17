@@ -6,12 +6,11 @@ import { useNavigate } from "react-router-dom";
 
 export default function Home() {
   const { language } = useLanguage();
-  const { countryCode } = useCountry();
+  const { countryCode, countryName } = useCountry();
   const navigate = useNavigate();
 
   return (
     <div className="font-sans">
-      {/* ניתן להוריד את FeaturedTrailer או להעביר לו פרופס מתאימים */}
       {/* <FeaturedTrailer type="movie" /> */}
       <HorizontalScroller
         title="Popular Movies"
@@ -20,7 +19,7 @@ export default function Home() {
         onTitleClick={() => navigate("/movies")}
       />
       <HorizontalScroller
-        title="Popular Movies In Your Region"
+        title={`Popular Movies${countryName ? ` in ${countryName}` : ""}`}
         fetchItems={() => fetchPopularMoviesByUserCountry(language, countryCode || undefined)}
         type="movie"
         onTitleClick={() => navigate("/movies-by-region")}
@@ -32,7 +31,7 @@ export default function Home() {
         onTitleClick={() => navigate("/tvs")}
       />
       <HorizontalScroller
-        title="Popular TV Shows In Your Region"
+        title={`Popular TV Shows${countryName ? ` in ${countryName}` : ""}`}
         fetchItems={() => fetchPopularTVShowsByUserCountry(language, countryCode || undefined)}
         type="tv"
         onTitleClick={() => navigate("/tvs-by-region")}

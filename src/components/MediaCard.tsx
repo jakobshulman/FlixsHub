@@ -12,7 +12,7 @@ export default function MediaCard({ id, title, poster, type, genre_ids, vote_ave
   }
   const [imgError, setImgError] = React.useState(false);
   return (
-    <Link to={`/${type}/${id}`} className="w-[180px] aspect-[2/3] flex-shrink-0 flex flex-col">
+    <Link to={`/${type}/${id}`} className="w-[172px] aspect-[2/3] flex-shrink-0 flex flex-col box-border">
       <div className="w-full aspect-[2/3] relative rounded-xl overflow-hidden">
         {poster && !imgError ? (
           <img
@@ -25,8 +25,8 @@ export default function MediaCard({ id, title, poster, type, genre_ids, vote_ave
           />
         ) : (
           <div className="glyphicons_v2 picture grey poster no_image_holder w-full h-full rounded-xl flex items-center justify-center text-gray-400 text-4xl bg-gray-200"
-            aria-label="אין תמונה זמינה">
-            <span className="sr-only">אין תמונה זמינה</span>
+            aria-label="No image available">
+            <span className="sr-only">No image available</span>
           </div>
         )}
       </div>
@@ -39,7 +39,7 @@ export default function MediaCard({ id, title, poster, type, genre_ids, vote_ave
             <span className="text-xs text-gray-500">{genreNames.join(", ")}</span>
           )}
           {vote_average !== undefined && (
-            <span className="text-xs text-gray-500">דירוג: {vote_average.toFixed(1)}</span>
+            <span className="text-xs text-gray-500">Rating: {vote_average.toFixed(1)}</span>
           )}
         </div>
       )}

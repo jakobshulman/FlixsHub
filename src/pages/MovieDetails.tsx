@@ -1,28 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useParams } from "react-router-dom";
 import { fetchMovieDetails } from "../api/tmdbApi";
 import { useLanguage } from "../context/LanguageContext";
 import HorizontalCastScroller from "../components/HorizontalCastScroller";
-import FullCastGrid from "../components/FullCastGrid";
 import FeaturedTrailer from "../components/FeaturedTrailer";
 import { fetchSimilar, fetchRecommendations } from "../api/fetchSimilarAndRecommendations";
 import HorizontalScroller from "../components/HorizontalScroller";
-
-type CastMember = {
-  id: number;
-  name: string;
-  character: string;
-  profile_path: string | null;
-};
+import { siteConfig } from "../config/siteConfig";
 
 export default function MovieDetails() {
   const { id } = useParams<{ id: string }>();
   const { language } = useLanguage();
   const [movie, setMovie] = useState<any>(null);
-  const [showFullCast, setShowFullCast] = useState(false);
-  const [fullCast, setFullCast] = useState<CastMember[]>([]);
+  const [castLimit, setCastLimit] = useState(20);
+  const [allCast, setAllCast] = useState<any[]>([]);
   const [similar, setSimilar] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const leftCardRef = useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     if (!id) return;
@@ -35,17 +30,24 @@ export default function MovieDetails() {
     fetchRecommendations({ mediaType: "movie", mediaId: Number(id), language }).then(setRecommendations);
   }, [id, language]);
 
-  const handleShowFullCast = async () => {
+  useEffect(() => {
     if (!id) return;
-    try {
-      // שימוש בפונקציה מה-API במקום קריאת axios ישירה
-      const res = await fetchMovieDetails(Number(id), language);
-      setFullCast(res.cast);
-      setShowFullCast(true);
-    } catch (err) {
-      console.error("Failed to fetch full cast:", err);
+    fetchMovieDetails(Number(id), language, castLimit).then((data) => {
+      setMovie(data);
+      setAllCast(data._allCast || []);
+    });
+  }, [id, language, castLimit]);
+
+  useLayoutEffect(() => {
+    function updateHeight() {
+      if (leftCardRef.current) {
+        setCardHeight(leftCardRef.current.offsetHeight);
+      }
     }
-  };
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, [movie]);
 
   if (!movie) return <p className="p-4">Loading...</p>;
 
@@ -71,65 +73,161 @@ export default function MovieDetails() {
           propsDescription={movie.overview}
           year={movie.release_date ? movie.release_date.split("-")[0] : undefined}
           runtime={movie.runtime ? `${Math.floor(movie.runtime / 60)} hr ${movie.runtime % 60} min` : undefined}
-          rating={movie.certification || movie.vote_average ? `${movie.certification ? movie.certification + ' · ' : ''}${movie.vote_average ? movie.vote_average : ''}` : undefined}
+          rating={movie.certification || movie.vote_average ? `${movie.certification ? movie.certification + ' \u00b7 ' : ''}${movie.vote_average ? movie.vote_average : ''}` : undefined}
           imdbRating={movie.imdb_rating ? movie.imdb_rating.toString() : undefined}
           director={movie.director}
           genres={movie.genres ? movie.genres.map((g: any) => g.name) : undefined}
         />
       )}
-      <div className="p-4 max-w-4xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-6">
-          {movie.poster_path ? (
-            <img
-              src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-              alt={movie.title}
-              className="rounded w-full md:w-1/3 h-[270px] object-cover"
-            />
-          ) : (
-            <div className="glyphicons_v2 picture grey poster no_image_holder w-full md:w-1/3 h-[270px] rounded flex items-center justify-center text-gray-400 text-4xl bg-gray-200"></div>
-          )}
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{movie.title}</h1>
-            <p className="text-gray-600 mb-2">
-              Year: {movie.release_date.split("-")[0]}
-            </p>
-            <p className="text-gray-600 mb-2">Rating: {movie.vote_average}</p>
-            <p className="mt-4">{movie.overview}</p>
+      <div className="p-4">
+        <div className="flex flex-col md:flex-row gap-6 w-full items-stretch">
+          {/* Left card: backdrop, name, description, type */}
+          <div ref={leftCardRef} className="md:w-1/2 w-full bg-white rounded-xl shadow-lg p-6 flex flex-col items-start min-w-[320px] max-w-full overflow-y-auto scrollbar-hide" style={{maxHeight: 500}}>
+            <div className="w-full h-64 rounded-xl overflow-hidden mb-4 flex-shrink-0 flex-grow-0">
+              <img
+                src={backdropUrl}
+                alt={movie.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex items-center mb-2">
+              <h1 className="text-3xl font-bold mr-2">{movie.title}</h1>
+              <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ml-2 ${siteConfig.buttonColors.primaryBg} ${siteConfig.buttonColors.primaryText}`}>
+                Movie
+              </span>
+            </div>
+            <p className="text-gray-700 mb-4 whitespace-pre-line">{movie.overview}</p>
+          </div>
+          {/* Middle card: main details */}
+          <div className="flex-1 bg-gray-50 rounded-xl shadow p-6 flex flex-col gap-2 min-w-[180px] max-w-full" style={cardHeight ? {height: cardHeight} : {}}>
+            <div className="mb-2">
+              <span className="font-semibold">Release Year: </span>
+              {movie.release_date ? movie.release_date.split("-")[0] : "-"}
+            </div>
+            <div className="mb-2">
+              <span className="font-semibold">TMDB Rating: </span>
+              {movie.vote_average ?? "-"}
+            </div>
             {movie.director && (
-              <p className="mt-4 text-gray-700">
-                <strong>Director:</strong> {movie.director}
-              </p>
+              <div className="mb-2">
+                <span className="font-semibold">Director: </span>
+                {movie.director}
+              </div>
+            )}
+            {movie.production_countries && movie.production_countries.length > 0 && (
+              <div className="mb-2">
+                <span className="font-semibold">Country: </span>
+                {movie.production_countries.map((c: any) => c.name).join(", ")}
+              </div>
+            )}
+            {movie.genres && movie.genres.length > 0 && (
+              <div className="mb-2">
+                <span className="font-semibold">Genres: </span>
+                {movie.genres.map((g: any) => g.name).join(", ")}
+              </div>
+            )}
+            {movie.runtime && (
+              <div className="mb-2">
+                <span className="font-semibold">Runtime: </span>
+                {Math.floor(movie.runtime / 60)}:{(movie.runtime % 60).toString().padStart(2, '0')} hours
+              </div>
+            )}
+            {movie.certification && (
+              <div className="mb-2">
+                <span className="font-semibold">Certification: </span>
+                {movie.certification}
+              </div>
+            )}
+            {movie.imdb_rating && (
+              <div className="mb-2">
+                <span className="font-semibold">IMDB: </span>
+                {movie.imdb_rating}
+              </div>
+            )}
+          </div>
+          {/* Right card: technical details */}
+          <div className="flex-1 bg-gray-100 rounded-xl shadow p-6 flex flex-col gap-2 min-w-[140px] max-w-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300" style={cardHeight ? {height: cardHeight} : {}}>
+            {movie.tagline && (
+              <div className="mb-2">
+                <span className="font-semibold">Tagline: </span>
+                {movie.tagline}
+              </div>
+            )}
+            {movie.status && (
+              <div className="mb-2">
+                <span className="font-semibold">Status: </span>
+                {movie.status}
+              </div>
+            )}
+            {movie.budget > 0 && (
+              <div className="mb-2">
+                <span className="font-semibold">Budget: </span>
+                {movie.budget.toLocaleString()} $
+              </div>
+            )}
+            {movie.revenue > 0 && (
+              <div className="mb-2">
+                <span className="font-semibold">Revenue: </span>
+                {movie.revenue.toLocaleString()} $
+              </div>
+            )}
+            {movie.original_language && (
+              <div className="mb-2">
+                <span className="font-semibold">Original Language: </span>
+                {movie.original_language}
+              </div>
+            )}
+            {movie.production_companies && movie.production_companies.length > 0 && (
+              <div className="mb-2">
+                <span className="font-semibold">Production Companies: </span>
+                {movie.production_companies.map((c: any) => c.name).join(", ")}
+              </div>
+            )}
+            {movie.vote_count && (
+              <div className="mb-2">
+                <span className="font-semibold">Vote Count: </span>
+                {movie.vote_count.toLocaleString()}
+              </div>
+            )}
+            {movie.homepage && (
+              <div className="mb-2">
+                <span className="font-semibold">Official Website: </span>
+                <a href={movie.homepage} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{movie.homepage}</a>
+              </div>
             )}
           </div>
         </div>
 
-        {/* קו דק בין תיאור לקאסט */}
+        {/* Thin line between description and cast */}
         <div className="border-b border-gray-200 my-8" />
 
         {movie.cast && movie.cast.length > 0 && (
           <div className="mt-10">
-            <h2 className="text-xl font-semibold mb-4">Top Cast</h2>
-            {!showFullCast ? (
-              <HorizontalCastScroller cast={movie.cast} onShowAll={handleShowFullCast} />
-            ) : (
-              <FullCastGrid cast={fullCast} />
-            )}
+            <h2 className="text-xl font-semibold mb-4">Cast & Crew</h2>
+            <HorizontalCastScroller
+              cast={movie.cast}
+              onScrollEnd={() => {
+                if (movie.cast.length < allCast.length) {
+                  setCastLimit((prev) => Math.min(prev + 20, allCast.length));
+                }
+              }}
+            />
           </div>
         )}
 
-        {/* קו דק מתחת לטופ קאסט */}
+        {/* Thin line below top cast */}
         <div className="border-b border-gray-200 my-8" />
 
-        {/* דומים */}
+        {/* Similar Movies */}
         <HorizontalScroller
-          title="דומים"
+          title="Similar"
           fetchItems={async () => similar}
           type="movie"
         />
 
-        {/* המלצות */}
+        {/* Recommendations */}
         <HorizontalScroller
-          title="המלצות"
+          title="Recommendations"
           fetchItems={async () => recommendations}
           type="movie"
         />

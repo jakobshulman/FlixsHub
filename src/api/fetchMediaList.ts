@@ -26,7 +26,7 @@ export async function fetchMediaList({
   minYear,
   maxYear,
   sortBy,
-}: FetchMediaListParams): Promise<any[]> {
+}: FetchMediaListParams): Promise<{ results: any[]; total_pages: number; page: number }> {
   const isDiscover = !!page;
   const url = isDiscover ? `/discover/${type}` : `/${type}/popular`;
 
@@ -44,9 +44,13 @@ export async function fetchMediaList({
 
   try {
     const { data } = await axiosInstance.get(url, { params });
-    return Array.isArray(data.results) ? data.results : [];
+    return {
+      results: Array.isArray(data.results) ? data.results : [],
+      total_pages: data.total_pages,
+      page: data.page
+    };
   } catch (error) {
     console.error("Error fetching media list:", error);
-    return [];
+    return { results: [], total_pages: 0, page: 0 };
   }
 }
