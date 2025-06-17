@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 
 interface FeaturedTrailerProps {
   backdropUrl: string;
@@ -14,7 +14,7 @@ interface FeaturedTrailerProps {
   icons?: React.ReactNode;
 }
 
-const YT_API_SRC = "https://www.youtube.com/iframe_api";
+const YT_API_SRC = 'https://www.youtube.com/iframe_api';
 
 declare global {
   interface Window {
@@ -23,7 +23,19 @@ declare global {
   }
 }
 
-export default function FeaturedTrailer({ backdropUrl, youtubeId, propsTitle, propsDescription, year, runtime, rating, imdbRating, director, genres, icons }: FeaturedTrailerProps) {
+export default function FeaturedTrailer({
+  backdropUrl,
+  youtubeId,
+  propsTitle,
+  propsDescription,
+  year,
+  runtime,
+  rating,
+  imdbRating,
+  director,
+  genres,
+  icons,
+}: FeaturedTrailerProps) {
   const [showVideo, setShowVideo] = useState(false);
   const [ytReady, setYtReady] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
@@ -36,7 +48,7 @@ export default function FeaturedTrailer({ backdropUrl, youtubeId, propsTitle, pr
       setYtReady(true);
       return;
     }
-    const tag = document.createElement("script");
+    const tag = document.createElement('script');
     tag.src = YT_API_SRC;
     document.body.appendChild(tag);
     window.onYouTubeIframeAPIReady = () => setYtReady(true);
@@ -46,7 +58,7 @@ export default function FeaturedTrailer({ backdropUrl, youtubeId, propsTitle, pr
           ytPlayer.current.destroy();
         }
       } catch (err) {
-        console.warn("YT player cleanup failed", err);
+        console.warn('YT player cleanup failed', err);
       }
       ytPlayer.current = null;
     };
@@ -95,7 +107,7 @@ export default function FeaturedTrailer({ backdropUrl, youtubeId, propsTitle, pr
           ytPlayer.current.destroy();
         }
       } catch (err) {
-        console.warn("YT player cleanup failed", err);
+        console.warn('YT player cleanup failed', err);
       }
       ytPlayer.current = null;
     };
@@ -123,36 +135,34 @@ export default function FeaturedTrailer({ backdropUrl, youtubeId, propsTitle, pr
       <img
         src={backdropUrl}
         alt="backdrop"
-        className={`w-full h-full object-cover transition-opacity duration-500 ${showVideo && youtubeId ? "opacity-0" : "opacity-100"}`}
-        style={{ position: "absolute", inset: 0 }}
+        className={`w-full h-full object-cover transition-opacity duration-500 ${
+          showVideo && youtubeId ? 'opacity-0' : 'opacity-100'
+        }`}
+        style={{ position: 'absolute', inset: 0 }}
       />
 
       <div className="absolute inset-0 z-10 pointer-events-auto">
         <div className="absolute bottom-0 left-0 w-full z-20 bg-gradient-to-t from-black via-black/60 to-transparent px-4 md:px-10 py-4">
           <div className="flex justify-between items-end gap-4">
-            {propsTitle && (
-              <span className="text-xl md:text-2xl font-bold text-white truncate max-w-[70%]">
-                {propsTitle}
-              </span>
+            {showVideo && youtubeId && (
+              <button
+                onClick={toggleMute}
+                className="z-30 bg-white/20 hover:bg-white/40 backdrop-blur-sm p-2 rounded-full transition"
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+              >
+                {isMuted ? (
+                  <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
+                    <path d="M3 10v4h4l5 5V5l-5 5H3z" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
+                    <path d="M3 10v4h4l5 5V5l-5 5H3z" />
+                    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.06c1.48-.74 2.5-2.26 2.5-4.03z" />
+                    <path d="M19.5 12c0 3.04-1.68 5.64-4.19 7.03l1.43 1.43C19.95 18.46 22 15.45 22 12s-2.05-6.46-5.26-8.46l-1.43 1.43C17.82 6.36 19.5 8.96 19.5 12z" />
+                  </svg>
+                )}
+              </button>
             )}
-
-            <button
-              onClick={toggleMute}
-              className="z-30 bg-white/20 hover:bg-white/40 backdrop-blur-sm p-2 rounded-full transition"
-              aria-label={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? (
-                <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
-                  <path d="M3 10v4h4l5 5V5l-5 5H3z" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
-                  <path d="M3 10v4h4l5 5V5l-5 5H3z" />
-                  <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.06c1.48-.74 2.5-2.26 2.5-4.03z" />
-                  <path d="M19.5 12c0 3.04-1.68 5.64-4.19 7.03l1.43 1.43C19.95 18.46 22 15.45 22 12s-2.05-6.46-5.26-8.46l-1.43 1.43C17.82 6.36 19.5 8.96 19.5 12z" />
-                </svg>
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -161,7 +171,14 @@ export default function FeaturedTrailer({ backdropUrl, youtubeId, propsTitle, pr
         <div
           ref={playerRef}
           id="yt-player-embed"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 5, pointerEvents: 'none' }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: 5,
+            pointerEvents: 'none',
+          }}
         />
       )}
     </div>
