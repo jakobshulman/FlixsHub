@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/FlixsHub/static/css/main.f55c31b1.css",
-    "main.js": "/FlixsHub/static/js/main.475a47ef.js",
+    "main.css": "/FlixsHub/static/css/main.46d58f81.css",
+    "main.js": "/FlixsHub/static/js/main.b14a23f6.js",
     "index.html": "/FlixsHub/index.html",
-    "main.f55c31b1.css.map": "/FlixsHub/static/css/main.f55c31b1.css.map",
-    "main.475a47ef.js.map": "/FlixsHub/static/js/main.475a47ef.js.map"
+    "main.46d58f81.css.map": "/FlixsHub/static/css/main.46d58f81.css.map",
+    "main.b14a23f6.js.map": "/FlixsHub/static/js/main.b14a23f6.js.map"
   },
   "entrypoints": [
-    "static/css/main.f55c31b1.css",
-    "static/js/main.475a47ef.js"
+    "static/css/main.46d58f81.css",
+    "static/js/main.b14a23f6.js"
   ]
 }
