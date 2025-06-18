@@ -13,9 +13,9 @@ root.render(
     <CountryProvider>
       <LanguageProvider>
         <GenresProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <BrowserRouter basename="/FlixsHub">
+  <App />
+</BrowserRouter>
         </GenresProvider>
       </LanguageProvider>
     </CountryProvider>
