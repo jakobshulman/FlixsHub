@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/flikz/static/css/main.f55c31b1.css",
-    "main.js": "/flikz/static/js/main.e8f8f529.js",
-    "index.html": "/flikz/index.html",
-    "main.f55c31b1.css.map": "/flikz/static/css/main.f55c31b1.css.map",
-    "main.e8f8f529.js.map": "/flikz/static/js/main.e8f8f529.js.map"
+    "main.css": "/FlixsHub/static/css/main.f55c31b1.css",
+    "main.js": "/FlixsHub/static/js/main.e8f8f529.js",
+    "index.html": "/FlixsHub/index.html",
+    "main.f55c31b1.css.map": "/FlixsHub/static/css/main.f55c31b1.css.map",
+    "main.e8f8f529.js.map": "/FlixsHub/static/js/main.e8f8f529.js.map"
   },
   "entrypoints": [
     "static/css/main.f55c31b1.css",
