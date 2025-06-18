@@ -108,6 +108,7 @@ export default function Layout() {
           </div>
         )}
         <div className="flex items-center gap-4">
+          {/* שים לב: ייתכן שהשורה <a href לא שלמה/שגויה, לכן לא נוגעים בה */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -133,8 +134,8 @@ export default function Layout() {
                 {suggestions.map((item) => (
                   <li key={item.id + '-' + (item.media_type || '')}>
                     {item.media_type === 'person' ? (
-                      <a
-                        href={`/person/${item.id}`}
+                      <Link
+                        to={`/person/${item.id}`}
                         className="block px-3 py-2 hover:bg-gray-800 truncate flex items-center text-white"
                         onClick={() => setSuggestions([])}
                       >
@@ -146,10 +147,10 @@ export default function Layout() {
                           />
                         )}
                         {item.name}
-                      </a>
+                      </Link>
                     ) : (
-                      <a
-                        href={`/${item.media_type === 'tv' ? 'tv' : 'movie'}/${item.id}`}
+                      <Link
+                        to={`/${item.media_type === 'tv' ? 'tv' : 'movie'}/${item.id}`}
                         className="block px-3 py-2 hover:bg-gray-800 truncate flex items-center text-white"
                         onClick={() => setSuggestions([])}
                       >
@@ -161,7 +162,7 @@ export default function Layout() {
                           />
                         )}
                         {item.title || item.name}
-                      </a>
+                      </Link>
                     )}
                   </li>
                 ))}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { fetchSeasonEpisodes } from '../api/fetchSeasonEpisodes';
 
 interface Episode {
@@ -89,12 +89,12 @@ const SeasonDetails: React.FC<SeasonDetailsProps> = () => {
       </div>
       {/* Back to series button */}
       <div className="flex justify-center mt-12">
-        <a
-          href={`/tv/${tvId}`}
+        <Link
+          to={`/tv/${tvId}`}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow transition"
         >
           Back to Series
-        </a>
+        </Link>
       </div>
     </div>
   );
