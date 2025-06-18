@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/flikz/static/css/main.f55c31b1.css",
-    "main.js": "/flikz/static/js/main.89e14760.js",
+    "main.js": "/flikz/static/js/main.e8f8f529.js",
     "index.html": "/flikz/index.html",
     "main.f55c31b1.css.map": "/flikz/static/css/main.f55c31b1.css.map",
-    "main.89e14760.js.map": "/flikz/static/js/main.89e14760.js.map"
+    "main.e8f8f529.js.map": "/flikz/static/js/main.e8f8f529.js.map"
   },
   "entrypoints": [
     "static/css/main.f55c31b1.css",
-    "static/js/main.89e14760.js"
+    "static/js/main.e8f8f529.js"
   ]
 }
